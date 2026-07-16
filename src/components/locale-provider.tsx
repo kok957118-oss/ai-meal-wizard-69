@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
-import "@/lib/i18n";
+import i18nInstance from "@/lib/i18n";
 
 /**
  * Syncs the active i18n language with:
@@ -13,7 +13,8 @@ import "@/lib/i18n";
  *     instantly without an app restart.
  */
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const { i18n } = useTranslation();
+  // Keep a value import so production tree-shaking cannot drop i18n setup.
+  const { i18n = i18nInstance } = useTranslation();
   const { user } = useSession();
 
   const { data } = useQuery({
