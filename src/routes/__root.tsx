@@ -14,7 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/app-header";
-import { BottomNav } from "@/components/bottom-nav";
+
 import { AuthGate } from "@/components/auth-gate";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -166,8 +166,6 @@ function RootComponent() {
               <AuthGate>
                 <Outlet />
               </AuthGate>
-              <div className="pb-20" />
-              <BottomNav />
             </div>
             <Toaster position="top-center" />
           </UpgradeModalProvider>
