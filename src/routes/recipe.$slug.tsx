@@ -52,11 +52,36 @@ function RecipePage() {
   const { data } = useQuery(recipeBySlugQuery(recipe.slug));
   const r = data ?? recipe;
   const { user } = useSession();
+  const { isPremium } = usePremium();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: favorites } = useQuery({ ...myFavoritesQuery(), enabled: !!user });
   const [savingFav, setSavingFav] = useState(false);
   const [addingList, setAddingList] = useState(false);
+  const [regen, setRegen] = useState(false);
+
+  async function regenerateImage() {
+    if (!user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+    if (!isPremium) {
+      toast.error("Upgrade to Premium to regenerate recipe images.");
+      navigate({ to: "/premium" });
+      return;
+    }
+    setRegen(true);
+    try {
+      await regenerateRecipeImage({ data: { slug: r.slug } });
+      await queryClient.invalidateQueries({ queryKey: ["recipe", r.slug] });
+      toast.success("New image generated");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to regenerate");
+    } finally {
+      setRegen(false);
+    }
+  }
+
 
   useEffect(() => {
     setContinueCooking({
