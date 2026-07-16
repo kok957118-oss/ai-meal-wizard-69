@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/app-header";
+import { BottomNav } from "@/components/bottom-nav";
 
 import { AuthGate } from "@/components/auth-gate";
 import { Toaster } from "@/components/ui/sonner";
@@ -161,11 +162,12 @@ function RootComponent() {
       <ThemeProvider>
         <LocaleProvider>
           <UpgradeModalProvider>
-            <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-background">
+            <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-background pb-20">
               {showAppHeader && <AppHeader />}
               <AuthGate>
                 <Outlet />
               </AuthGate>
+              <BottomNav />
             </div>
             <Toaster position="top-center" />
           </UpgradeModalProvider>
