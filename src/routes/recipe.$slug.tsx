@@ -10,11 +10,14 @@ import {
   ChefHat,
   Lightbulb,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { recipeBySlugQuery, myFavoritesQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
+import { usePremium } from "@/hooks/use-premium";
+import { regenerateRecipeImage } from "@/lib/ai.functions";
 import { setContinueCooking } from "@/lib/continue-cooking";
 import { Button } from "@/components/ui/button";
 
