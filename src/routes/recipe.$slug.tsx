@@ -10,11 +10,14 @@ import {
   ChefHat,
   Lightbulb,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { recipeBySlugQuery, myFavoritesQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
+import { usePremium } from "@/hooks/use-premium";
+import { regenerateRecipeImage } from "@/lib/ai.functions";
 import { setContinueCooking } from "@/lib/continue-cooking";
 import { Button } from "@/components/ui/button";
 
@@ -49,11 +52,36 @@ function RecipePage() {
   const { data } = useQuery(recipeBySlugQuery(recipe.slug));
   const r = data ?? recipe;
   const { user } = useSession();
+  const { isPremium } = usePremium();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: favorites } = useQuery({ ...myFavoritesQuery(), enabled: !!user });
   const [savingFav, setSavingFav] = useState(false);
   const [addingList, setAddingList] = useState(false);
+  const [regen, setRegen] = useState(false);
+
+  async function regenerateImage() {
+    if (!user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+    if (!isPremium) {
+      toast.error("Upgrade to Premium to regenerate recipe images.");
+      navigate({ to: "/premium" });
+      return;
+    }
+    setRegen(true);
+    try {
+      await regenerateRecipeImage({ data: { slug: r.slug } });
+      await queryClient.invalidateQueries({ queryKey: ["recipe", r.slug] });
+      toast.success("New image generated");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to regenerate");
+    } finally {
+      setRegen(false);
+    }
+  }
+
 
   useEffect(() => {
     setContinueCooking({
@@ -212,6 +240,14 @@ function RecipePage() {
                   <ShoppingCart className="mr-2 h-4 w-4" />
                 )}
                 Add to list
+              </Button>
+              <Button onClick={regenerateImage} variant="outline" disabled={regen}>
+                {regen ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                {isPremium ? "Regenerate image" : "AI image (Premium)"}
               </Button>
             </div>
           </div>
