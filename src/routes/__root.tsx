@@ -166,8 +166,6 @@ function RootComponent() {
               <AuthGate>
                 <Outlet />
               </AuthGate>
-              <div className="pb-20" />
-              <BottomNav />
             </div>
             <Toaster position="top-center" />
           </UpgradeModalProvider>
