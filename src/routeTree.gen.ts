@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecipesRouteImport } from './routes/recipes'
@@ -17,6 +18,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as ListRouteImport } from './routes/list'
+import { Route as GroceryRouteImport } from './routes/grocery'
 import { Route as CookbookRouteImport } from './routes/cookbook'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -31,6 +33,11 @@ import { Route as ApiPublicWebhooksRevenuecatRouteImport } from './routes/api/pu
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScanRoute = ScanRouteImport.update({
@@ -66,6 +73,11 @@ const PlannerRoute = PlannerRouteImport.update({
 const ListRoute = ListRouteImport.update({
   id: '/list',
   path: '/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroceryRoute = GroceryRouteImport.update({
+  id: '/grocery',
+  path: '/grocery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CookbookRoute = CookbookRouteImport.update({
@@ -127,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
   '/cookbook': typeof CookbookRoute
+  '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
@@ -134,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scan': typeof ScanRoute
+  '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -147,6 +161,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
   '/cookbook': typeof CookbookRoute
+  '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
@@ -154,6 +169,7 @@ export interface FileRoutesByTo {
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scan': typeof ScanRoute
+  '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -168,6 +184,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
   '/cookbook': typeof CookbookRoute
+  '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
@@ -175,6 +192,7 @@ export interface FileRoutesById {
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scan': typeof ScanRoute
+  '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -190,6 +208,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chat'
     | '/cookbook'
+    | '/grocery'
     | '/list'
     | '/planner'
     | '/premium'
@@ -197,6 +216,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/reset-password'
     | '/scan'
+    | '/settings'
     | '/support'
     | '/legal/privacy'
     | '/legal/terms'
@@ -210,6 +230,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chat'
     | '/cookbook'
+    | '/grocery'
     | '/list'
     | '/planner'
     | '/premium'
@@ -217,6 +238,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/reset-password'
     | '/scan'
+    | '/settings'
     | '/support'
     | '/legal/privacy'
     | '/legal/terms'
@@ -230,6 +252,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chat'
     | '/cookbook'
+    | '/grocery'
     | '/list'
     | '/planner'
     | '/premium'
@@ -237,6 +260,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/reset-password'
     | '/scan'
+    | '/settings'
     | '/support'
     | '/legal/privacy'
     | '/legal/terms'
@@ -251,6 +275,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ChatRoute: typeof ChatRoute
   CookbookRoute: typeof CookbookRoute
+  GroceryRoute: typeof GroceryRoute
   ListRoute: typeof ListRoute
   PlannerRoute: typeof PlannerRoute
   PremiumRoute: typeof PremiumRoute
@@ -258,6 +283,7 @@ export interface RootRouteChildren {
   RecipesRoute: typeof RecipesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ScanRoute: typeof ScanRoute
+  SettingsRoute: typeof SettingsRoute
   SupportRoute: typeof SupportRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
@@ -272,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/scan': {
@@ -321,6 +354,13 @@ declare module '@tanstack/react-router' {
       path: '/list'
       fullPath: '/list'
       preLoaderRoute: typeof ListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grocery': {
+      id: '/grocery'
+      path: '/grocery'
+      fullPath: '/grocery'
+      preLoaderRoute: typeof GroceryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cookbook': {
@@ -403,6 +443,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ChatRoute: ChatRoute,
   CookbookRoute: CookbookRoute,
+  GroceryRoute: GroceryRoute,
   ListRoute: ListRoute,
   PlannerRoute: PlannerRoute,
   PremiumRoute: PremiumRoute,
@@ -410,6 +451,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecipesRoute: RecipesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ScanRoute: ScanRoute,
+  SettingsRoute: SettingsRoute,
   SupportRoute: SupportRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
@@ -419,3 +461,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
