@@ -321,8 +321,11 @@ export const regenerateRecipeImage = createServerFn({ method: "POST" })
       .from("community-media")
       .upload(path, bytes, { contentType: "image/png", upsert: true });
     if (upErr) throw new Error(upErr.message);
-    const { data: pub } = supabaseAdmin.storage.from("community-media").getPublicUrl(path);
-    const publicUrl = pub.publicUrl;
+    const { data: signed, error: signErr } = await supabaseAdmin.storage
+      .from("community-media")
+      .createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (signErr || !signed) throw new Error(signErr?.message ?? "Failed to sign url");
+    const publicUrl = signed.signedUrl;
 
     const { error: updErr } = await supabaseAdmin
       .from("recipes")
