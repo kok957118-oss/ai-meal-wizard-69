@@ -162,11 +162,12 @@ function RootComponent() {
       <ThemeProvider>
         <LocaleProvider>
           <UpgradeModalProvider>
-            <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-background">
+            <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-background pb-20">
               {showAppHeader && <AppHeader />}
               <AuthGate>
                 <Outlet />
               </AuthGate>
+              <BottomNav />
             </div>
             <Toaster position="top-center" />
           </UpgradeModalProvider>
