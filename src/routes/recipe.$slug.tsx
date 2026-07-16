@@ -241,6 +241,14 @@ function RecipePage() {
                 )}
                 Add to list
               </Button>
+              <Button onClick={regenerateImage} variant="outline" disabled={regen}>
+                {regen ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                {isPremium ? "Regenerate image" : "AI image (Premium)"}
+              </Button>
             </div>
           </div>
         </div>
