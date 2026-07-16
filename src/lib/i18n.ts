@@ -221,7 +221,6 @@ void i18n
     interpolation: { escapeValue: false },
     returnNull: false,
     react: { useSuspense: false },
-    initImmediate: false,
   });
 
 export default i18n;
