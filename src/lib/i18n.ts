@@ -220,6 +220,8 @@ void i18n
     fallbackLng: "en",
     interpolation: { escapeValue: false },
     returnNull: false,
+    react: { useSuspense: false },
+    initImmediate: false,
   });
 
 export default i18n;
