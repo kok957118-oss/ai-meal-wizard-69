@@ -1,17 +1,24 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Activity,
   Crown,
   DollarSign,
-  Loader2,
-  Plus,
-  Trash2,
-  Ticket,
-  Users,
-  Sparkles,
   Download,
+  Loader2,
+  Megaphone,
+  Plus,
+  Search,
+  Sparkles,
+  Ticket,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  Users,
+  Utensils,
 } from "lucide-react";
+import { format, subDays, subMonths } from "date-fns";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-session";
 import {
@@ -22,8 +29,13 @@ import {
   adminListSubscribers,
   adminRevokePremium,
   adminSavePromo,
-  adminStats,
 } from "@/lib/premium.functions";
+import {
+  adminListAuditLogs,
+  adminListUsers,
+  adminSendAnnouncement,
+  getAdminAnalytics,
+} from "@/lib/admin-analytics.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,17 +47,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+
+// Charts imported directly below; recharts pieces are already small and shared.
+
+// Import chart pieces directly (they're small once bundled)
+import {
+  AreaTrend,
+  BarBreakdown,
+  DonutBreakdown,
+  LineTrend,
+} from "@/components/admin/charts";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "Admin — MealMate" },
-      { name: "description", content: "Manage MealMate Premium subscribers, promo codes, and revenue." },
+      { name: "description", content: "Manage MealMate: analytics, subscribers, revenue, promo codes." },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: AdminPage,
 });
+
+type Preset = "7d" | "30d" | "12m" | "custom";
+
+function usePresetRange(preset: Preset, custom: { from: string; to: string }) {
+  return useMemo(() => {
+    const now = new Date();
+    if (preset === "custom") return { from: custom.from, to: custom.to };
+    if (preset === "7d") return { from: subDays(now, 7).toISOString(), to: now.toISOString() };
+    if (preset === "30d") return { from: subDays(now, 30).toISOString(), to: now.toISOString() };
+    return { from: subMonths(now, 12).toISOString(), to: now.toISOString() };
+  }, [preset, custom.from, custom.to]);
+}
 
 function AdminPage() {
   const { user, loading: sessLoading } = useSession();
@@ -59,6 +94,23 @@ function AdminPage() {
   useEffect(() => {
     if (!sessLoading && !user) navigate({ to: "/auth", replace: true });
   }, [sessLoading, user, navigate]);
+
+  const [preset, setPreset] = useState<Preset>("30d");
+  const [custom, setCustom] = useState({
+    from: format(subDays(new Date(), 30), "yyyy-MM-dd"),
+    to: format(new Date(), "yyyy-MM-dd"),
+  });
+  const range = usePresetRange(preset, {
+    from: new Date(custom.from).toISOString(),
+    to: new Date(custom.to + "T23:59:59").toISOString(),
+  });
+
+  const analytics = useQuery({
+    queryKey: ["admin-analytics", range.from, range.to],
+    queryFn: () => getAdminAnalytics({ data: range }),
+    enabled: !!gate?.isAdmin,
+    staleTime: 60_000,
+  });
 
   if (sessLoading || gateLoading) {
     return (
@@ -81,27 +133,51 @@ function AdminPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 pb-24 pt-8">
-      <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-          <Crown className="h-5 w-5" />
-        </span>
-        <div>
-          <h1 className="font-display text-3xl leading-tight">Premium Admin</h1>
-          <p className="text-sm text-muted-foreground">Subscribers, revenue, promo codes.</p>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6">
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+            <Crown className="h-6 w-6" />
+          </span>
+          <div>
+            <h1 className="font-display text-3xl leading-tight tracking-tight">Admin Dashboard</h1>
+            <p className="text-sm text-muted-foreground">
+              Live analytics across users, revenue and content.
+            </p>
+          </div>
         </div>
-      </div>
+        <DateRangeControl
+          preset={preset}
+          onPresetChange={setPreset}
+          custom={custom}
+          onCustomChange={setCustom}
+        />
+      </header>
 
       <Tabs defaultValue="overview" className="mt-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex w-full flex-wrap justify-start gap-1 rounded-2xl bg-muted p-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="revenue">Revenue</TabsTrigger>
+          <TabsTrigger value="recipes">Recipes</TabsTrigger>
           <TabsTrigger value="subs">Subscribers</TabsTrigger>
           <TabsTrigger value="promos">Promos</TabsTrigger>
           <TabsTrigger value="grant">Grant</TabsTrigger>
+          <TabsTrigger value="announce">Announce</TabsTrigger>
+          <TabsTrigger value="audit">Audit</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
-          <OverviewTab />
+          <OverviewTab analytics={analytics.data} loading={analytics.isLoading} />
+        </TabsContent>
+        <TabsContent value="users" className="mt-4">
+          <UsersTab analytics={analytics.data} loading={analytics.isLoading} />
+        </TabsContent>
+        <TabsContent value="revenue" className="mt-4">
+          <RevenueTab analytics={analytics.data} loading={analytics.isLoading} />
+        </TabsContent>
+        <TabsContent value="recipes" className="mt-4">
+          <RecipesTab analytics={analytics.data} loading={analytics.isLoading} />
         </TabsContent>
         <TabsContent value="subs" className="mt-4">
           <SubscribersTab />
@@ -112,33 +188,347 @@ function AdminPage() {
         <TabsContent value="grant" className="mt-4">
           <GrantTab />
         </TabsContent>
+        <TabsContent value="announce" className="mt-4">
+          <AnnounceTab />
+        </TabsContent>
+        <TabsContent value="audit" className="mt-4">
+          <AuditTab />
+        </TabsContent>
       </Tabs>
     </main>
   );
 }
 
-function OverviewTab() {
-  const { data, isLoading } = useQuery({ queryKey: ["admin-stats"], queryFn: () => adminStats() });
-  if (isLoading || !data) return <Loader2 className="h-5 w-5 animate-spin" />;
-  const cards = [
-    { label: "Active subscribers", value: data.active, icon: Sparkles },
-    { label: "In trial", value: data.trialing, icon: Users },
-    { label: "Lifetime members", value: data.lifetime, icon: Crown },
-    { label: "Revenue (30d)", value: `$${data.revenue30.toFixed(2)}`, icon: DollarSign },
-    { label: "Total referrals", value: data.referralsTotal, icon: Users },
-    { label: "Referrals rewarded", value: data.referralsRewarded, icon: Ticket },
+function DateRangeControl({
+  preset,
+  onPresetChange,
+  custom,
+  onCustomChange,
+}: {
+  preset: Preset;
+  onPresetChange: (p: Preset) => void;
+  custom: { from: string; to: string };
+  onCustomChange: (v: { from: string; to: string }) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Select value={preset} onValueChange={(v) => onPresetChange(v as Preset)}>
+        <SelectTrigger className="w-[160px] rounded-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="7d">Last 7 days</SelectItem>
+          <SelectItem value="30d">Last 30 days</SelectItem>
+          <SelectItem value="12m">Last 12 months</SelectItem>
+          <SelectItem value="custom">Custom range</SelectItem>
+        </SelectContent>
+      </Select>
+      {preset === "custom" && (
+        <>
+          <Input
+            type="date"
+            value={custom.from}
+            onChange={(e) => onCustomChange({ ...custom, from: e.target.value })}
+            className="w-[150px] rounded-full"
+          />
+          <Input
+            type="date"
+            value={custom.to}
+            onChange={(e) => onCustomChange({ ...custom, to: e.target.value })}
+            className="w-[150px] rounded-full"
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+type Analytics = Awaited<ReturnType<typeof getAdminAnalytics>>;
+
+function KpiCard({
+  label,
+  value,
+  icon: Icon,
+  delta,
+  hint,
+}: {
+  label: string;
+  value: string | number;
+  icon: React.ComponentType<{ className?: string }>;
+  delta?: number;
+  hint?: string;
+}) {
+  const positive = (delta ?? 0) >= 0;
+  return (
+    <div className="group rounded-3xl border border-border/60 bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+      <div className="flex items-center justify-between">
+        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <Icon className="h-5 w-5" />
+        </span>
+        {delta !== undefined && (
+          <span
+            className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+              positive ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"
+            }`}
+          >
+            {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {Math.abs(delta).toFixed(1)}%
+          </span>
+        )}
+      </div>
+      <p className="mt-4 text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-display text-3xl leading-tight tracking-tight">{value}</p>
+      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+function ChartCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm">
+      <div className="mb-3">
+        <h3 className="font-display text-lg leading-tight">{title}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+      </div>
+      <Suspense fallback={<div className="flex h-[220px] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>}>
+        {children}
+      </Suspense>
+    </div>
+  );
+}
+
+function LoadingBlock() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="h-32 animate-pulse rounded-3xl bg-muted" />
+      ))}
+    </div>
+  );
+}
+
+function OverviewTab({ analytics, loading }: { analytics?: Analytics; loading: boolean }) {
+  if (loading || !analytics) return <LoadingBlock />;
+  const { users, revenue, subscriptions, recipes } = analytics;
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label="Total users" value={users.total.toLocaleString()} icon={Users} delta={users.growthPct} />
+        <KpiCard label="Revenue (range)" value={`$${revenue.total.toFixed(2)}`} icon={DollarSign} delta={revenue.growthPct} />
+        <KpiCard label="Active premium" value={subscriptions.active + subscriptions.lifetime} icon={Crown} hint={`${subscriptions.trialing} in trial`} />
+        <KpiCard label="Conversion" value={`${subscriptions.conversionRate.toFixed(1)}%`} icon={Sparkles} />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="New users" subtitle="Signups in selected range">
+          <AreaTrend data={users.series} dataKey="count" />
+        </ChartCard>
+        <ChartCard title="Revenue" subtitle="Daily payments (USD)">
+          <AreaTrend data={revenue.series} dataKey="amount" color="hsl(142 71% 45%)" />
+        </ChartCard>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label="New users" value={users.new.toLocaleString()} icon={Users} />
+        <KpiCard label="New recipes" value={recipes.newInRange.toLocaleString()} icon={Utensils} />
+        <KpiCard label="Grocery items" value={analytics.grocery.itemsInRange.toLocaleString()} icon={Activity} />
+        <KpiCard label="Meal plans" value={analytics.planner.entriesInRange.toLocaleString()} icon={Activity} />
+      </div>
+    </div>
+  );
+}
+
+function UsersTab({ analytics, loading }: { analytics?: Analytics; loading: boolean }) {
+  const [search, setSearch] = useState("");
+  const users = useQuery({
+    queryKey: ["admin-users", search],
+    queryFn: () => adminListUsers({ data: { search } }),
+    staleTime: 30_000,
+  });
+  if (loading || !analytics) return <LoadingBlock />;
+  const pie = [
+    { name: "Premium", value: analytics.users.premium },
+    { name: "Free", value: analytics.users.free },
   ];
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {cards.map((c) => (
-        <div key={c.label} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <c.icon className="h-4 w-4" />
-          </span>
-          <p className="mt-3 text-xs text-muted-foreground">{c.label}</p>
-          <p className="font-display text-2xl leading-tight">{c.value}</p>
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label="Total users" value={analytics.users.total.toLocaleString()} icon={Users} delta={analytics.users.growthPct} />
+        <KpiCard label="New in range" value={analytics.users.new.toLocaleString()} icon={Users} />
+        <KpiCard label="Premium users" value={analytics.users.premium.toLocaleString()} icon={Crown} />
+        <KpiCard label="Free users" value={analytics.users.free.toLocaleString()} icon={Users} />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Signups over time">
+          <LineTrend data={analytics.users.series} dataKey="count" />
+        </ChartCard>
+        <ChartCard title="Premium vs Free">
+          <DonutBreakdown data={pie} dataKey="value" />
+        </ChartCard>
+      </div>
+      <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="font-display text-lg">Recent users</h3>
+          <div className="relative w-full max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name or username"
+              className="rounded-full pl-9"
+            />
+          </div>
         </div>
-      ))}
+        {users.isLoading ? (
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left">User</th>
+                  <th className="px-3 py-2 text-left">Username</th>
+                  <th className="px-3 py-2 text-left">Locale</th>
+                  <th className="px-3 py-2 text-left">Joined</th>
+                  <th className="px-3 py-2 text-left">ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(users.data ?? []).map((u) => (
+                  <tr key={u.id} className="border-t border-border/60">
+                    <td className="px-3 py-2">{u.display_name ?? "—"}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{u.username ?? "—"}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{u.locale}</td>
+                    <td className="px-3 py-2 text-muted-foreground">
+                      {format(new Date(u.created_at), "MMM d, yyyy")}
+                    </td>
+                    <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                      {u.id.slice(0, 8)}…
+                    </td>
+                  </tr>
+                ))}
+                {(users.data ?? []).length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
+                      No users found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RevenueTab({ analytics, loading }: { analytics?: Analytics; loading: boolean }) {
+  if (loading || !analytics) return <LoadingBlock />;
+  const currencies = Object.entries(analytics.revenue.currencyBreakdown).map(([name, value]) => ({
+    name,
+    value: Number(value.toFixed(2)),
+  }));
+  const storePie = analytics.subscriptions.storeBreakdown.map((s) => ({
+    name: s.name,
+    value: s.count,
+  }));
+  const monthlyEstimate =
+    analytics.range.days > 0 ? (analytics.revenue.total / analytics.range.days) * 30 : 0;
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label="Revenue (range)" value={`$${analytics.revenue.total.toFixed(2)}`} icon={DollarSign} delta={analytics.revenue.growthPct} />
+        <KpiCard label="Monthly (est.)" value={`$${monthlyEstimate.toFixed(2)}`} icon={TrendingUp} hint="Extrapolated from range" />
+        <KpiCard label="ARPU" value={`$${analytics.revenue.arpu.toFixed(2)}`} icon={Users} hint="Revenue / premium user" />
+        <KpiCard label="Refunds" value={`$${analytics.revenue.refunds.toFixed(2)}`} icon={TrendingDown} />
+      </div>
+      <ChartCard title="Revenue over time" subtitle="Daily payments in USD">
+        <AreaTrend data={analytics.revenue.series} dataKey="amount" color="hsl(142 71% 45%)" />
+      </ChartCard>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Currency breakdown">
+          {currencies.length > 0 ? (
+            <BarBreakdown data={currencies} dataKey="value" />
+          ) : (
+            <EmptyMini label="No revenue in this range." />
+          )}
+        </ChartCard>
+        <ChartCard title="Subscriptions by store">
+          {storePie.length > 0 ? (
+            <DonutBreakdown data={storePie} dataKey="value" />
+          ) : (
+            <EmptyMini label="No subscriptions yet." />
+          )}
+        </ChartCard>
+      </div>
+    </div>
+  );
+}
+
+function RecipesTab({ analytics, loading }: { analytics?: Analytics; loading: boolean }) {
+  if (loading || !analytics) return <LoadingBlock />;
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label="Total recipes" value={analytics.recipes.total.toLocaleString()} icon={Utensils} />
+        <KpiCard label="New in range" value={analytics.recipes.newInRange.toLocaleString()} icon={Utensils} />
+        <KpiCard label="Grocery items" value={analytics.grocery.itemsInRange.toLocaleString()} icon={Activity} />
+        <KpiCard label="Meal plan entries" value={analytics.planner.entriesInRange.toLocaleString()} icon={Activity} />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Top categories">
+          {analytics.recipes.categories.length > 0 ? (
+            <BarBreakdown data={analytics.recipes.categories} dataKey="count" />
+          ) : (
+            <EmptyMini label="No categorized recipes yet." />
+          )}
+        </ChartCard>
+        <ChartCard title="Top cuisines">
+          {analytics.recipes.cuisines.length > 0 ? (
+            <DonutBreakdown data={analytics.recipes.cuisines} dataKey="count" />
+          ) : (
+            <EmptyMini label="No cuisines yet." />
+          )}
+        </ChartCard>
+      </div>
+      <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm">
+        <h3 className="mb-3 font-display text-lg">Most saved recipes</h3>
+        {analytics.recipes.topByFavorites.length === 0 ? (
+          <EmptyMini label="No favorites yet." />
+        ) : (
+          <ul className="divide-y divide-border/60">
+            {analytics.recipes.topByFavorites.map((r, i) => (
+              <li key={r.id} className="flex items-center gap-3 py-3">
+                <span className="w-6 text-sm font-medium text-muted-foreground">{i + 1}</span>
+                {r.image_url ? (
+                  <img src={r.image_url} alt="" className="h-10 w-10 rounded-xl object-cover" />
+                ) : (
+                  <div className="h-10 w-10 rounded-xl bg-muted" />
+                )}
+                <span className="flex-1 truncate">{r.name}</span>
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  {r.saves} saves
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EmptyMini({ label }: { label: string }) {
+  return (
+    <div className="flex h-[180px] items-center justify-center text-sm text-muted-foreground">
+      {label}
     </div>
   );
 }
@@ -178,16 +568,16 @@ function SubscribersTab() {
   }
 
   return (
-    <div>
+    <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{rows.length} subscribers</p>
-        <Button size="sm" variant="secondary" onClick={exportCsv}>
+        <Button size="sm" variant="secondary" onClick={exportCsv} className="rounded-full">
           <Download className="mr-2 h-4 w-4" /> Export CSV
         </Button>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
+          <thead className="text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th className="px-3 py-2 text-left">User</th>
               <th className="px-3 py-2 text-left">Tier</th>
@@ -198,7 +588,7 @@ function SubscribersTab() {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-t border-border/70">
+              <tr key={r.id} className="border-t border-border/60">
                 <td className="px-3 py-2">{r.display_name}</td>
                 <td className="px-3 py-2 capitalize">{r.tier}</td>
                 <td className="px-3 py-2 capitalize">{r.status}</td>
@@ -262,6 +652,7 @@ function PromosTab() {
       <div className="mb-3 flex justify-end">
         <Button
           size="sm"
+          className="rounded-full"
           onClick={() =>
             setEditing({
               code: "",
@@ -285,7 +676,7 @@ function PromosTab() {
           {(promos ?? []).map((p) => (
             <li
               key={p.id}
-              className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 shadow-sm"
+              className="flex items-center justify-between rounded-2xl border border-border/60 bg-card p-4 shadow-sm"
             >
               <div>
                 <div className="flex items-center gap-2">
@@ -334,7 +725,7 @@ function PromosTab() {
 
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 p-4 backdrop-blur">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-xl">
+          <div className="w-full max-w-md rounded-3xl border border-border/60 bg-card p-5 shadow-xl">
             <h3 className="font-display text-xl">{editing.id ? "Edit promo" : "New promo"}</h3>
             <div className="mt-4 space-y-3">
               <Input
@@ -345,9 +736,13 @@ function PromosTab() {
               />
               <Select
                 value={editing.reward_kind}
-                onValueChange={(v) => setEditing({ ...editing, reward_kind: v as typeof editing.reward_kind })}
+                onValueChange={(v) =>
+                  setEditing({ ...editing, reward_kind: v as typeof editing.reward_kind })
+                }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="free_days">Free days</SelectItem>
                   <SelectItem value="free_month">Free month</SelectItem>
@@ -373,7 +768,7 @@ function PromosTab() {
                   })
                 }
               />
-              <div className="flex items-center justify-between rounded-xl border border-border p-3">
+              <div className="flex items-center justify-between rounded-xl border border-border/60 p-3">
                 <span className="text-sm">Enabled</span>
                 <Switch
                   checked={editing.enabled}
@@ -382,7 +777,9 @@ function PromosTab() {
               </div>
             </div>
             <div className="mt-5 flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+              <Button variant="ghost" onClick={() => setEditing(null)}>
+                Cancel
+              </Button>
               <Button onClick={save}>Save</Button>
             </div>
           </div>
@@ -400,9 +797,9 @@ function GrantTab() {
   async function grant() {
     try {
       await adminGrantPremium({ data: { userId, days } });
-      toast.success(`Granted ${days} days to user`);
-      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+      toast.success(`Granted ${days} days`);
       qc.invalidateQueries({ queryKey: ["admin-subs"] });
+      qc.invalidateQueries({ queryKey: ["admin-analytics"] });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Grant failed");
     }
@@ -418,13 +815,9 @@ function GrantTab() {
   }
 
   return (
-    <div className="max-w-md space-y-3 rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="max-w-md space-y-3 rounded-3xl border border-border/60 bg-card p-5 shadow-sm">
       <h3 className="font-display text-lg">Manual grant / revoke</h3>
-      <Input
-        placeholder="User ID (uuid)"
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-      />
+      <Input placeholder="User ID (uuid)" value={userId} onChange={(e) => setUserId(e.target.value)} />
       <Input
         type="number"
         placeholder="Days"
@@ -432,13 +825,103 @@ function GrantTab() {
         onChange={(e) => setDays(Number(e.target.value))}
       />
       <div className="flex gap-2">
-        <Button onClick={grant} disabled={!userId}>Grant Premium</Button>
-        <Button variant="secondary" onClick={revoke} disabled={!userId}>Revoke</Button>
+        <Button onClick={grant} disabled={!userId}>
+          Grant Premium
+        </Button>
+        <Button variant="secondary" onClick={revoke} disabled={!userId}>
+          Revoke
+        </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Find user IDs in the Subscribers tab.
+        Find user IDs in the Users tab.
       </p>
+    </div>
+  );
+}
 
+function AnnounceTab() {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+  async function send() {
+    setSending(true);
+    try {
+      await adminSendAnnouncement({ data: { title, body } });
+      toast.success("Announcement published");
+      setTitle("");
+      setBody("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Send failed");
+    } finally {
+      setSending(false);
+    }
+  }
+  return (
+    <div className="max-w-xl space-y-3 rounded-3xl border border-border/60 bg-card p-5 shadow-sm">
+      <div className="flex items-center gap-2">
+        <Megaphone className="h-5 w-5 text-primary" />
+        <h3 className="font-display text-lg">New announcement</h3>
+      </div>
+      <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+      <Textarea
+        placeholder="Message body"
+        rows={4}
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+      />
+      <Button onClick={send} disabled={!title || !body || sending}>
+        {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        Publish
+      </Button>
+    </div>
+  );
+}
+
+function AuditTab() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-audit"],
+    queryFn: () => adminListAuditLogs(),
+  });
+  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin" />;
+  const rows = data ?? [];
+  return (
+    <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm">
+      <h3 className="mb-3 font-display text-lg">Recent admin activity</h3>
+      {rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No audit events yet.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2 text-left">Time</th>
+                <th className="px-3 py-2 text-left">Action</th>
+                <th className="px-3 py-2 text-left">Target</th>
+                <th className="px-3 py-2 text-left">Actor</th>
+                <th className="px-3 py-2 text-left">IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-t border-border/60">
+                  <td className="px-3 py-2 text-muted-foreground">
+                    {format(new Date(r.created_at), "MMM d, HH:mm")}
+                  </td>
+                  <td className="px-3 py-2">{r.action}</td>
+                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                    {r.target_table ?? "—"}
+                    {r.target_id ? ` · ${r.target_id.slice(0, 8)}…` : ""}
+                  </td>
+                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                    {r.actor_id ? r.actor_id.slice(0, 8) + "…" : "—"}
+                  </td>
+                  <td className="px-3 py-2 text-muted-foreground">{r.ip_address ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
