@@ -190,8 +190,3 @@ export function DonutBreakdown({
     </ResponsiveContainer>
   );
 }
-
-// lazy re-export bundle (allows dynamic import from admin page)
-export const LazyCharts = lazy(async () => ({
-  default: () => null,
-}));
