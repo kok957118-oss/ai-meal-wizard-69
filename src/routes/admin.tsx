@@ -49,10 +49,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-const Charts = lazy(() => import("@/components/admin/charts").then((m) => ({
-  default: () => null,
-  ...m,
-})).then(() => import("@/components/admin/charts")));
+// Charts imported directly below; recharts pieces are already small and shared.
 
 // Import chart pieces directly (they're small once bundled)
 import {
