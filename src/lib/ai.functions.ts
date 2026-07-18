@@ -132,18 +132,25 @@ export const surpriseMe = createServerFn({ method: "POST" })
       "an African diaspora dish",
     ];
     const theme = themes[Math.floor(Math.random() * themes.length)];
-    const recipe = await callModel(
-      `Surprise the user with ${theme}. Pick something delightful and specific — not generic. Include one fun fact.`,
-    );
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const row = toDbRecipe(recipe, context.userId);
-    const { data, error } = await supabaseAdmin
-      .from("recipes")
-      .insert(row)
-      .select("slug")
-      .single();
-    if (error) throw new Error(error.message);
-    return { slug: data.slug };
+    const t0 = Date.now();
+    try {
+      const recipe = await callModel(
+        `Surprise the user with ${theme}. Pick something delightful and specific — not generic. Include one fun fact.`,
+      );
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const row = toDbRecipe(recipe, context.userId);
+      const { data, error } = await supabaseAdmin
+        .from("recipes")
+        .insert(row)
+        .select("slug")
+        .single();
+      if (error) throw new Error(error.message);
+      void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.surprise_me", latency_ms: Date.now() - t0, success: true, metadata: { theme, name: recipe.name } });
+      return { slug: data.slug };
+    } catch (e) {
+      void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.surprise_me", latency_ms: Date.now() - t0, success: false, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
+      throw e;
+    }
   });
 
 // Search / generate a specific recipe — signed-in users only, rate limited.
