@@ -257,6 +257,54 @@ export type Database = {
           },
         ]
       }
+      nutrition_logs: {
+        Row: {
+          calories: number | null
+          carbs_g: number | null
+          created_at: string
+          fat_g: number | null
+          id: string
+          logged_at: string
+          meal_type: string | null
+          name: string
+          protein_g: number | null
+          recipe_id: string | null
+          servings: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          logged_at?: string
+          meal_type?: string | null
+          name: string
+          protein_g?: number | null
+          recipe_id?: string | null
+          servings?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          logged_at?: string
+          meal_type?: string | null
+          name?: string
+          protein_g?: number | null
+          recipe_id?: string | null
+          servings?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pantry_items: {
         Row: {
           category: string | null
@@ -993,6 +1041,42 @@ export type Database = {
           trial_end?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      telemetry_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: number
+          kind: string
+          latency_ms: number | null
+          metadata: Json
+          name: string
+          success: boolean
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: number
+          kind: string
+          latency_ms?: number | null
+          metadata?: Json
+          name: string
+          success?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: number
+          kind?: string
+          latency_ms?: number | null
+          metadata?: Json
+          name?: string
+          success?: boolean
+          user_id?: string | null
         }
         Relationships: []
       }
