@@ -348,3 +348,92 @@ export const adminSendAnnouncement = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ---------- Telemetry (AI / Scan / Nutrition events) ----------
+export const getAdminTelemetry = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => RangeInput.parse(v))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const from = new Date(data.from);
+    const to = new Date(data.to);
+    const fromIso = from.toISOString();
+    const toIso = to.toISOString();
+
+    const { data: events } = await supabaseAdmin
+      .from("telemetry_events")
+      .select("kind,name,latency_ms,success,user_id,created_at")
+      .gte("created_at", fromIso)
+      .lte("created_at", toIso)
+      .order("created_at", { ascending: false })
+      .limit(20000);
+
+    const rows = events ?? [];
+    const total = rows.length;
+    const successes = rows.filter((r) => r.success).length;
+    const successRate = total > 0 ? (successes / total) * 100 : 0;
+    const latencies = rows.map((r) => r.latency_ms ?? 0).filter((n) => n > 0).sort((a, b) => a - b);
+    const p50 = latencies.length ? latencies[Math.floor(latencies.length * 0.5)] : 0;
+    const p95 = latencies.length ? latencies[Math.floor(latencies.length * 0.95)] : 0;
+    const avgLatency = latencies.length ? Math.round(latencies.reduce((s, n) => s + n, 0) / latencies.length) : 0;
+
+    // Series per day
+    const dayBucket = new Map<string, { count: number; errors: number }>();
+    for (const k of daysBetween(from, to)) dayBucket.set(k, { count: 0, errors: 0 });
+    for (const r of rows) {
+      const k = dayKey(new Date(r.created_at));
+      const b = dayBucket.get(k);
+      if (!b) continue;
+      b.count += 1;
+      if (!r.success) b.errors += 1;
+    }
+    const series = Array.from(dayBucket.entries()).map(([date, v]) => ({ date, count: v.count, errors: v.errors }));
+
+    // By event name
+    const byName = new Map<string, { count: number; errors: number; totalLatency: number; latCount: number }>();
+    for (const r of rows) {
+      const b = byName.get(r.name) ?? { count: 0, errors: 0, totalLatency: 0, latCount: 0 };
+      b.count += 1;
+      if (!r.success) b.errors += 1;
+      if (r.latency_ms) {
+        b.totalLatency += r.latency_ms;
+        b.latCount += 1;
+      }
+      byName.set(r.name, b);
+    }
+    const events_by_name = Array.from(byName.entries())
+      .map(([name, v]) => ({
+        name,
+        count: v.count,
+        errors: v.errors,
+        successRate: v.count > 0 ? Number(((v.count - v.errors) / v.count * 100).toFixed(1)) : 0,
+        avgLatencyMs: v.latCount > 0 ? Math.round(v.totalLatency / v.latCount) : 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    // By kind
+    const byKind = new Map<string, number>();
+    for (const r of rows) byKind.set(r.kind, (byKind.get(r.kind) ?? 0) + 1);
+    const events_by_kind = Array.from(byKind.entries()).map(([name, count]) => ({ name, count }));
+
+    // Active users (distinct user_id)
+    const activeUsers = new Set<string>();
+    for (const r of rows) if (r.user_id) activeUsers.add(r.user_id);
+
+    return {
+      range: { from: fromIso, to: toIso },
+      totals: {
+        events: total,
+        successRate: Number(successRate.toFixed(2)),
+        errors: total - successes,
+        activeUsers: activeUsers.size,
+        avgLatencyMs: avgLatency,
+        p50LatencyMs: p50,
+        p95LatencyMs: p95,
+      },
+      series,
+      events_by_name,
+      events_by_kind,
+    };
+  });

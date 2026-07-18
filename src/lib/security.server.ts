@@ -58,3 +58,60 @@ export function clientIpFromRequest(req: Request | undefined): string | null {
     null
   );
 }
+
+/**
+ * Fire-and-forget telemetry write. Never throws; errors are logged.
+ * Use `trackEvent` inline, or `withTelemetry` to auto-time a handler.
+ */
+export async function trackEvent(evt: {
+  user_id: string | null;
+  kind: string;
+  name: string;
+  latency_ms?: number | null;
+  success?: boolean;
+  error?: string | null;
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  try {
+    const { error } = await supabaseAdmin.from("telemetry_events").insert({
+      user_id: evt.user_id,
+      kind: evt.kind,
+      name: evt.name,
+      latency_ms: evt.latency_ms ?? null,
+      success: evt.success ?? true,
+      error: evt.error ?? null,
+      metadata: (evt.metadata ?? {}) as never,
+    });
+    if (error) console.warn("telemetry_error", evt.name, error.message);
+  } catch (e) {
+    console.warn("telemetry_exception", evt.name, e);
+  }
+}
+
+/**
+ * Wrap an async op with automatic latency + success/failure telemetry.
+ * Rethrows the original error after recording.
+ */
+export async function withTelemetry<T>(
+  meta: { user_id: string | null; kind: string; name: string; metadata?: Record<string, unknown> },
+  op: () => Promise<T>,
+): Promise<T> {
+  const t0 = Date.now();
+  try {
+    const result = await op();
+    void trackEvent({
+      ...meta,
+      latency_ms: Date.now() - t0,
+      success: true,
+    });
+    return result;
+  } catch (e) {
+    void trackEvent({
+      ...meta,
+      latency_ms: Date.now() - t0,
+      success: false,
+      error: e instanceof Error ? e.message.slice(0, 500) : String(e).slice(0, 500),
+    });
+    throw e;
+  }
+}
