@@ -162,39 +162,51 @@ export const generateRecipe = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await enforceRateLimit("ai_generate", context.userId, 10);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Prefer an exact-name match (case-insensitive) for dedup; fall back to fuzzy.
-    const { data: exact } = await supabaseAdmin
-      .from("recipes")
-      .select("slug,name")
-      .ilike("name", data.query)
-      .limit(1);
-    if (exact && exact.length > 0) return { slug: exact[0].slug, cached: true };
+    const t0 = Date.now();
+    try {
+      const { data: exact } = await supabaseAdmin
+        .from("recipes")
+        .select("slug,name")
+        .ilike("name", data.query)
+        .limit(1);
+      if (exact && exact.length > 0) {
+        void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.generate_recipe", latency_ms: Date.now() - t0, success: true, metadata: { query: data.query, cached: true } });
+        return { slug: exact[0].slug, cached: true };
+      }
 
-    const { data: fuzzy } = await supabaseAdmin
-      .from("recipes")
-      .select("slug,name")
-      .ilike("name", `%${data.query}%`)
-      .limit(1);
-    if (fuzzy && fuzzy.length > 0) return { slug: fuzzy[0].slug, cached: true };
+      const { data: fuzzy } = await supabaseAdmin
+        .from("recipes")
+        .select("slug,name")
+        .ilike("name", `%${data.query}%`)
+        .limit(1);
+      if (fuzzy && fuzzy.length > 0) {
+        void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.generate_recipe", latency_ms: Date.now() - t0, success: true, metadata: { query: data.query, cached: true } });
+        return { slug: fuzzy[0].slug, cached: true };
+      }
 
-    const recipe = await callModel(
-      `Create a real, authentic recipe for: "${data.query}". If the dish exists in any culture, use the traditional version. Be specific and accurate.`,
-    );
-    const row = toDbRecipe(recipe, context.userId);
-    const { data: inserted, error } = await supabaseAdmin
-      .from("recipes")
-      .insert(row)
-      .select("slug")
-      .single();
-    if (error) throw new Error(error.message);
-    await auditLog({
-      actor_id: context.userId,
-      action: "recipe.generated",
-      target_table: "recipes",
-      target_id: inserted.slug,
-      metadata: { query: data.query, name: recipe.name },
-    });
-    return { slug: inserted.slug, cached: false };
+      const recipe = await callModel(
+        `Create a real, authentic recipe for: "${data.query}". If the dish exists in any culture, use the traditional version. Be specific and accurate.`,
+      );
+      const row = toDbRecipe(recipe, context.userId);
+      const { data: inserted, error } = await supabaseAdmin
+        .from("recipes")
+        .insert(row)
+        .select("slug")
+        .single();
+      if (error) throw new Error(error.message);
+      await auditLog({
+        actor_id: context.userId,
+        action: "recipe.generated",
+        target_table: "recipes",
+        target_id: inserted.slug,
+        metadata: { query: data.query, name: recipe.name },
+      });
+      void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.generate_recipe", latency_ms: Date.now() - t0, success: true, metadata: { query: data.query, cached: false, name: recipe.name } });
+      return { slug: inserted.slug, cached: false };
+    } catch (e) {
+      void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.generate_recipe", latency_ms: Date.now() - t0, success: false, error: e instanceof Error ? e.message.slice(0, 500) : String(e), metadata: { query: data.query } });
+      throw e;
+    }
   });
 
 // Kitchen Scan — identify ingredients from a photo
