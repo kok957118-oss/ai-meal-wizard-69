@@ -336,37 +336,44 @@ export const regenerateRecipeImage = createServerFn({ method: "POST" })
       `shallow depth of field, plated on real crockery, top-down or 3/4 angle. ` +
       `Photorealistic — not an illustration, not a 3d render.`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model: "google/gemini-3-pro-image",
-        messages: [{ role: "user", content: prompt }],
-        modalities: ["image", "text"],
-      }),
-    });
-    if (!res.ok) throw new Error(`Image gateway ${res.status}: ${await res.text()}`);
-    const j = (await res.json()) as { data?: { b64_json?: string }[] };
-    const b64 = j.data?.[0]?.b64_json;
-    if (!b64) throw new Error("No image returned");
+    const t0 = Date.now();
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: "google/gemini-3-pro-image",
+          messages: [{ role: "user", content: prompt }],
+          modalities: ["image", "text"],
+        }),
+      });
+      if (!res.ok) throw new Error(`Image gateway ${res.status}: ${await res.text()}`);
+      const j = (await res.json()) as { data?: { b64_json?: string }[] };
+      const b64 = j.data?.[0]?.b64_json;
+      if (!b64) throw new Error("No image returned");
 
-    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-    const path = `recipes/${recipe.slug}-${Date.now()}.png`;
-    const { error: upErr } = await supabaseAdmin.storage
-      .from("community-media")
-      .upload(path, bytes, { contentType: "image/png", upsert: true });
-    if (upErr) throw new Error(upErr.message);
-    const { data: signed, error: signErr } = await supabaseAdmin.storage
-      .from("community-media")
-      .createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (signErr || !signed) throw new Error(signErr?.message ?? "Failed to sign url");
-    const publicUrl = signed.signedUrl;
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const path = `recipes/${recipe.slug}-${Date.now()}.png`;
+      const { error: upErr } = await supabaseAdmin.storage
+        .from("community-media")
+        .upload(path, bytes, { contentType: "image/png", upsert: true });
+      if (upErr) throw new Error(upErr.message);
+      const { data: signed, error: signErr } = await supabaseAdmin.storage
+        .from("community-media")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (signErr || !signed) throw new Error(signErr?.message ?? "Failed to sign url");
+      const publicUrl = signed.signedUrl;
 
-    const { error: updErr } = await supabaseAdmin
-      .from("recipes")
-      .update({ image_url: publicUrl })
-      .eq("id", recipe.id);
-    if (updErr) throw new Error(updErr.message);
+      const { error: updErr } = await supabaseAdmin
+        .from("recipes")
+        .update({ image_url: publicUrl })
+        .eq("id", recipe.id);
+      if (updErr) throw new Error(updErr.message);
 
-    return { image_url: publicUrl };
+      void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.regen_image", latency_ms: Date.now() - t0, success: true, metadata: { slug: recipe.slug } });
+      return { image_url: publicUrl };
+    } catch (e) {
+      void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.regen_image", latency_ms: Date.now() - t0, success: false, error: e instanceof Error ? e.message.slice(0, 500) : String(e), metadata: { slug: recipe.slug } });
+      throw e;
+    }
   });
