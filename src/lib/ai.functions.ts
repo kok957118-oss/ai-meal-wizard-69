@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { slugify } from "@/lib/slug";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { enforceRateLimit, auditLog } from "@/lib/security.server";
+import { enforceRateLimit, auditLog, trackEvent } from "@/lib/security.server";
 
 const RecipeSchema = z.object({
   name: z.string(),
