@@ -219,35 +219,43 @@ export const scanKitchen = createServerFn({ method: "POST" })
     await enforceRateLimit("ai_vision", context.userId, 10);
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("Missing LOVABLE_API_KEY");
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: 'Identify every distinct food ingredient visible. Reply as JSON only: {"items": [{"name":"tomato","quantity":"2","category":"vegetable"}]}. Use lowercase names.',
-              },
-              { type: "image_url", image_url: { url: data.imageDataUrl } },
-            ],
-          },
-        ],
-      }),
-    });
-    if (!res.ok) throw new Error(`Vision API ${res.status}: ${await res.text()}`);
-    const j = (await res.json()) as { choices: { message: { content: string } }[] };
-    const text = j.choices?.[0]?.message?.content ?? "{}";
-    const cleaned = text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
-    const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
-    const parsed = JSON.parse(cleaned.slice(start, end + 1)) as {
-      items: { name: string; quantity?: string; category?: string }[];
-    };
-    return parsed.items ?? [];
+    const t0 = Date.now();
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: 'Identify every distinct food ingredient visible. Reply as JSON only: {"items": [{"name":"tomato","quantity":"2","category":"vegetable"}]}. Use lowercase names.',
+                },
+                { type: "image_url", image_url: { url: data.imageDataUrl } },
+              ],
+            },
+          ],
+        }),
+      });
+      if (!res.ok) throw new Error(`Vision API ${res.status}: ${await res.text()}`);
+      const j = (await res.json()) as { choices: { message: { content: string } }[] };
+      const text = j.choices?.[0]?.message?.content ?? "{}";
+      const cleaned = text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+      const start = cleaned.indexOf("{");
+      const end = cleaned.lastIndexOf("}");
+      const parsed = JSON.parse(cleaned.slice(start, end + 1)) as {
+        items: { name: string; quantity?: string; category?: string }[];
+      };
+      const items = parsed.items ?? [];
+      void trackEvent({ user_id: context.userId, kind: "scan", name: "scan.kitchen", latency_ms: Date.now() - t0, success: true, metadata: { item_count: items.length } });
+      return items;
+    } catch (e) {
+      void trackEvent({ user_id: context.userId, kind: "scan", name: "scan.kitchen", latency_ms: Date.now() - t0, success: false, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
+      throw e;
+    }
   });
 
 // Ask anything about food — a single-turn Q&A used by the AI Chat quick action
