@@ -266,24 +266,32 @@ export const askFoodQuestion = createServerFn({ method: "POST" })
     await enforceRateLimit("ai_chat", context.userId, 20);
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("Missing LOVABLE_API_KEY");
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are MealMate's kitchen assistant. Answer food, cooking, nutrition, and ingredient-substitution questions clearly and concisely, in 2-4 short paragraphs or a short list. Plain text only, no markdown headers.",
-          },
-          { role: "user", content: data.question },
-        ],
-      }),
-    });
-    if (!res.ok) throw new Error(`AI gateway ${res.status}: ${await res.text()}`);
-    const j = (await res.json()) as { choices: { message: { content: string } }[] };
-    return { answer: j.choices?.[0]?.message?.content ?? "" };
+    const t0 = Date.now();
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are MealMate's kitchen assistant. Answer food, cooking, nutrition, and ingredient-substitution questions clearly and concisely, in 2-4 short paragraphs or a short list. Plain text only, no markdown headers.",
+            },
+            { role: "user", content: data.question },
+          ],
+        }),
+      });
+      if (!res.ok) throw new Error(`AI gateway ${res.status}: ${await res.text()}`);
+      const j = (await res.json()) as { choices: { message: { content: string } }[] };
+      const answer = j.choices?.[0]?.message?.content ?? "";
+      void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.chat_question", latency_ms: Date.now() - t0, success: true, metadata: { q_len: data.question.length, a_len: answer.length } });
+      return { answer };
+    } catch (e) {
+      void trackEvent({ user_id: context.userId, kind: "ai", name: "ai.chat_question", latency_ms: Date.now() - t0, success: false, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
+      throw e;
+    }
   });
 
 // Regenerate a recipe's hero image with Lovable AI (gemini-3-pro-image).
