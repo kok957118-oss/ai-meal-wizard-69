@@ -63,6 +63,8 @@ function RecipePage() {
   const [savingFav, setSavingFav] = useState(false);
   const [addingList, setAddingList] = useState(false);
   const [regen, setRegen] = useState(false);
+  const [cookingOpen, setCookingOpen] = useState(false);
+  const cookingModeEnabled = useFeatureFlag("cooking_mode", true);
 
   async function regenerateImage() {
     if (!user) {
