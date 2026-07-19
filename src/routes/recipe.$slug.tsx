@@ -250,6 +250,12 @@ function RecipePage() {
                 )}
                 Add to list
               </Button>
+              {cookingModeEnabled && steps.length > 0 && (
+                <Button onClick={() => setCookingOpen(true)} variant="default">
+                  <Play className="mr-2 h-4 w-4" />
+                  Start cooking
+                </Button>
+              )}
               <Button onClick={regenerateImage} variant="outline" disabled={regen}>
                 {regen ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
