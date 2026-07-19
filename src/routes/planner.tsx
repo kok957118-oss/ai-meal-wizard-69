@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Plus, Trash2, Loader2 } from "lucide-react";
+import { CalendarDays, Plus, Trash2, Loader2, ShoppingCart, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { myPlannerQuery, myFavoritesQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
+import { generatePersonalizedPlan, buildGroceryFromPlan } from "@/lib/planner.functions";
+import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import {
   Select,
   SelectContent,
