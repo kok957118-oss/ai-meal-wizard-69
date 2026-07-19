@@ -325,6 +325,9 @@ function RecipePage() {
           </div>
         )}
       </div>
+      {cookingOpen && (
+        <CookingMode name={r.name} steps={steps} onClose={() => setCookingOpen(false)} />
+      )}
     </main>
   );
 }
