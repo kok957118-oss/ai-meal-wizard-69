@@ -48,8 +48,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-
-// Charts imported directly below; recharts pieces are already small and shared.
+import { TelemetryTab } from "@/components/admin/telemetry-tab";
+import { FlagsTab } from "@/components/admin/flags-tab";
 
 // Import chart pieces directly (they're small once bundled)
 import {
@@ -160,6 +160,8 @@ function AdminPage() {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
           <TabsTrigger value="recipes">Recipes</TabsTrigger>
+          <TabsTrigger value="telemetry">Telemetry</TabsTrigger>
+          <TabsTrigger value="flags">Flags</TabsTrigger>
           <TabsTrigger value="subs">Subscribers</TabsTrigger>
           <TabsTrigger value="promos">Promos</TabsTrigger>
           <TabsTrigger value="grant">Grant</TabsTrigger>
@@ -178,6 +180,12 @@ function AdminPage() {
         </TabsContent>
         <TabsContent value="recipes" className="mt-4">
           <RecipesTab analytics={analytics.data} loading={analytics.isLoading} />
+        </TabsContent>
+        <TabsContent value="telemetry" className="mt-4">
+          <TelemetryTab range={range} />
+        </TabsContent>
+        <TabsContent value="flags" className="mt-4">
+          <FlagsTab />
         </TabsContent>
         <TabsContent value="subs" className="mt-4">
           <SubscribersTab />

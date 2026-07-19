@@ -11,6 +11,7 @@ import {
   Lightbulb,
   Loader2,
   Sparkles,
+  Play,
 } from "lucide-react";
 import { toast } from "sonner";
 import { recipeBySlugQuery, myFavoritesQuery } from "@/lib/queries";
@@ -18,7 +19,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { usePremium } from "@/hooks/use-premium";
 import { regenerateRecipeImage } from "@/lib/ai.functions";
+import { trackRecipeView } from "@/lib/engagement.functions";
 import { setContinueCooking } from "@/lib/continue-cooking";
+import { CookingMode } from "@/components/cooking-mode";
+import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/recipe/$slug")({
@@ -59,6 +63,8 @@ function RecipePage() {
   const [savingFav, setSavingFav] = useState(false);
   const [addingList, setAddingList] = useState(false);
   const [regen, setRegen] = useState(false);
+  const [cookingOpen, setCookingOpen] = useState(false);
+  const cookingModeEnabled = useFeatureFlag("cooking_mode", true);
 
   async function regenerateImage() {
     if (!user) {
@@ -91,7 +97,10 @@ function RecipePage() {
       cooking_time_minutes: r.cooking_time_minutes,
       calories: r.calories,
     });
-  }, [r.slug]);
+    if (user && r.id) {
+      void trackRecipeView({ data: { recipeId: r.id } }).catch(() => {});
+    }
+  }, [r.slug, r.id, user]);
 
   const ingredients = (Array.isArray(r.ingredients) ? r.ingredients : []) as Ingredient[];
   const steps = (Array.isArray(r.steps) ? r.steps : []) as string[];
@@ -241,6 +250,12 @@ function RecipePage() {
                 )}
                 Add to list
               </Button>
+              {cookingModeEnabled && steps.length > 0 && (
+                <Button onClick={() => setCookingOpen(true)} variant="default">
+                  <Play className="mr-2 h-4 w-4" />
+                  Start cooking
+                </Button>
+              )}
               <Button onClick={regenerateImage} variant="outline" disabled={regen}>
                 {regen ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -310,6 +325,9 @@ function RecipePage() {
           </div>
         )}
       </div>
+      {cookingOpen && (
+        <CookingMode name={r.name} steps={steps} onClose={() => setCookingOpen(false)} />
+      )}
     </main>
   );
 }

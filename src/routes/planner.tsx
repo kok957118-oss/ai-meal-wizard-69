@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Plus, Trash2, Loader2 } from "lucide-react";
+import { CalendarDays, Plus, Trash2, Loader2, ShoppingCart, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { myPlannerQuery, myFavoritesQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
+import { generatePersonalizedPlan, buildGroceryFromPlan } from "@/lib/planner.functions";
+import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import {
   Select,
   SelectContent,
@@ -59,6 +61,38 @@ function PlannerPage() {
   const [mealType, setMealType] = useState("Dinner");
   const [recipeId, setRecipeId] = useState("");
   const [saving, setSaving] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [autoGroc, setAutoGroc] = useState(false);
+  const aiPlannerEnabled = useFeatureFlag("personalized_planner", true);
+
+  async function generateAiPlan() {
+    if (!user) return;
+    setAiLoading(true);
+    try {
+      const { suggestions } = await generatePersonalizedPlan({ data: { days: 7, startDate: fromISO } });
+      toast.success(`Generated ${suggestions.length} meal ideas`, {
+        description: suggestions.slice(0, 3).map((s) => `${s.meal_type}: ${s.name}`).join(" · "),
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't generate plan");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  async function autoGrocery() {
+    setAutoGroc(true);
+    try {
+      const { inserted } = await buildGroceryFromPlan({ data: { from: fromISO, to: toISO } });
+      toast.success(`Added ${inserted} items to your grocery list`, {
+        action: { label: "View", onClick: () => navigate({ to: "/list" }) },
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't build grocery list");
+    } finally {
+      setAutoGroc(false);
+    }
+  }
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth", replace: true });
@@ -98,13 +132,27 @@ function PlannerPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
-      <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-          <CalendarDays className="h-5 w-5" />
-        </span>
-        <div>
-          <h1 className="font-display text-4xl">Meal planner</h1>
-          <p className="text-sm text-muted-foreground">This week's plan</p>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+            <CalendarDays className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <h1 className="truncate font-display text-3xl sm:text-4xl">Meal planner</h1>
+            <p className="text-sm text-muted-foreground">This week's plan</p>
+          </div>
+        </div>
+        <div className="col-span-2 flex flex-wrap gap-2 sm:col-auto">
+          {aiPlannerEnabled && (
+            <Button size="sm" variant="outline" onClick={generateAiPlan} disabled={aiLoading}>
+              {aiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+              AI plan
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={autoGrocery} disabled={autoGroc || !plans || plans.length === 0}>
+            {autoGroc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShoppingCart className="mr-2 h-4 w-4" />}
+            Auto grocery
+          </Button>
         </div>
       </div>
 
