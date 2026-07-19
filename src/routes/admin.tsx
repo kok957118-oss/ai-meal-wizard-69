@@ -48,8 +48,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-
-// Charts imported directly below; recharts pieces are already small and shared.
+import { TelemetryTab } from "@/components/admin/telemetry-tab";
+import { FlagsTab } from "@/components/admin/flags-tab";
 
 // Import chart pieces directly (they're small once bundled)
 import {
