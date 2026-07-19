@@ -51,13 +51,17 @@ export function TelemetryTab({ range }: { range: { from: string; to: string } })
         </div>
         <div className="rounded-2xl border border-border bg-card p-4">
           <h3 className="mb-3 font-medium">By kind</h3>
-          <DonutBreakdown data={t.events_by_kind} />
+          <DonutBreakdown data={t.events_by_kind} dataKey="count" nameKey="name" />
         </div>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="mb-3 font-medium">Top events</h3>
-        <BarBreakdown data={t.events_by_name.slice(0, 10).map((e) => ({ name: e.name, count: e.count }))} />
+        <BarBreakdown
+          data={t.events_by_name.slice(0, 10).map((e) => ({ name: e.name, count: e.count }))}
+          dataKey="count"
+          xKey="name"
+        />
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-muted-foreground">
