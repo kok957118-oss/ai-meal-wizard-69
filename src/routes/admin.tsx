@@ -160,6 +160,8 @@ function AdminPage() {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
           <TabsTrigger value="recipes">Recipes</TabsTrigger>
+          <TabsTrigger value="telemetry">Telemetry</TabsTrigger>
+          <TabsTrigger value="flags">Flags</TabsTrigger>
           <TabsTrigger value="subs">Subscribers</TabsTrigger>
           <TabsTrigger value="promos">Promos</TabsTrigger>
           <TabsTrigger value="grant">Grant</TabsTrigger>
@@ -178,6 +180,12 @@ function AdminPage() {
         </TabsContent>
         <TabsContent value="recipes" className="mt-4">
           <RecipesTab analytics={analytics.data} loading={analytics.isLoading} />
+        </TabsContent>
+        <TabsContent value="telemetry" className="mt-4">
+          <TelemetryTab range={range} />
+        </TabsContent>
+        <TabsContent value="flags" className="mt-4">
+          <FlagsTab />
         </TabsContent>
         <TabsContent value="subs" className="mt-4">
           <SubscribersTab />
