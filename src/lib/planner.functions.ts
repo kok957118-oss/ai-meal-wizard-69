@@ -126,7 +126,7 @@ export const buildGroceryFromPlan = createServerFn({ method: "POST" })
       user_id: context.userId,
       name,
       quantity: v.quantity,
-      source: Array.from(v.sources).slice(0, 3).join(", ") || null,
+      category: Array.from(v.sources).slice(0, 3).join(", ") || null,
     }));
 
     if (rows.length === 0) return { inserted: 0 };
