@@ -121,6 +121,30 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          description: string | null
+          enabled: boolean
+          key: string
+          rollout_percent: number
+          updated_at: string
+        }
+        Insert: {
+          description?: string | null
+          enabled?: boolean
+          key: string
+          rollout_percent?: number
+          updated_at?: string
+        }
+        Update: {
+          description?: string | null
+          enabled?: boolean
+          key?: string
+          rollout_percent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -652,52 +676,76 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activity_level: string | null
+          age: number | null
+          allergies: string[] | null
           avatar_url: string | null
           bio: string | null
+          budget_per_day: number | null
           cover_image_url: string | null
           created_at: string
           currency: string
           dietary_preferences: string[] | null
           display_name: string | null
+          family_size: number | null
           follower_count: number
           following_count: number
+          goal: string | null
+          height_cm: number | null
           id: string
           locale: string
           post_count: number
           updated_at: string
           username: string | null
+          weight_kg: number | null
         }
         Insert: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[] | null
           avatar_url?: string | null
           bio?: string | null
+          budget_per_day?: number | null
           cover_image_url?: string | null
           created_at?: string
           currency?: string
           dietary_preferences?: string[] | null
           display_name?: string | null
+          family_size?: number | null
           follower_count?: number
           following_count?: number
+          goal?: string | null
+          height_cm?: number | null
           id: string
           locale?: string
           post_count?: number
           updated_at?: string
           username?: string | null
+          weight_kg?: number | null
         }
         Update: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[] | null
           avatar_url?: string | null
           bio?: string | null
+          budget_per_day?: number | null
           cover_image_url?: string | null
           created_at?: string
           currency?: string
           dietary_preferences?: string[] | null
           display_name?: string | null
+          family_size?: number | null
           follower_count?: number
           following_count?: number
+          goal?: string | null
+          height_cm?: number | null
           id?: string
           locale?: string
           post_count?: number
           updated_at?: string
           username?: string | null
+          weight_kg?: number | null
         }
         Relationships: []
       }
@@ -808,8 +856,76 @@ export type Database = {
         }
         Relationships: []
       }
+      recently_viewed: {
+        Row: {
+          id: string
+          recipe_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          recipe_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          recipe_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recently_viewed_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipe_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          recipe_id: string
+          review: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          recipe_id: string
+          review?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          recipe_id?: string
+          review?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_ratings_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipes: {
         Row: {
+          avg_rating: number | null
           calories: number | null
           carbs_g: number | null
           category: string | null
@@ -830,12 +946,14 @@ export type Database = {
           meal_type: string | null
           name: string
           protein_g: number | null
+          rating_count: number | null
           servings: number | null
           slug: string
           steps: Json
           updated_at: string
         }
         Insert: {
+          avg_rating?: number | null
           calories?: number | null
           carbs_g?: number | null
           category?: string | null
@@ -856,12 +974,14 @@ export type Database = {
           meal_type?: string | null
           name: string
           protein_g?: number | null
+          rating_count?: number | null
           servings?: number | null
           slug: string
           steps?: Json
           updated_at?: string
         }
         Update: {
+          avg_rating?: number | null
           calories?: number | null
           carbs_g?: number | null
           category?: string | null
@@ -882,6 +1002,7 @@ export type Database = {
           meal_type?: string | null
           name?: string
           protein_g?: number | null
+          rating_count?: number | null
           servings?: number | null
           slug?: string
           steps?: Json
@@ -1143,6 +1264,7 @@ export type Database = {
       }
       increment_dish_search: { Args: { _name: string }; Returns: number }
       is_premium: { Args: { _user_id: string }; Returns: boolean }
+      recalc_recipe_rating: { Args: { _recipe_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
