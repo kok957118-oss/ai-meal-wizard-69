@@ -97,7 +97,10 @@ function RecipePage() {
       cooking_time_minutes: r.cooking_time_minutes,
       calories: r.calories,
     });
-  }, [r.slug]);
+    if (user && r.id) {
+      void trackRecipeView({ data: { recipeId: r.id } }).catch(() => {});
+    }
+  }, [r.slug, r.id, user]);
 
   const ingredients = (Array.isArray(r.ingredients) ? r.ingredients : []) as Ingredient[];
   const steps = (Array.isArray(r.steps) ? r.steps : []) as string[];
