@@ -11,6 +11,7 @@ import {
   Lightbulb,
   Loader2,
   Sparkles,
+  Play,
 } from "lucide-react";
 import { toast } from "sonner";
 import { recipeBySlugQuery, myFavoritesQuery } from "@/lib/queries";
@@ -18,7 +19,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { usePremium } from "@/hooks/use-premium";
 import { regenerateRecipeImage } from "@/lib/ai.functions";
+import { trackRecipeView } from "@/lib/engagement.functions";
 import { setContinueCooking } from "@/lib/continue-cooking";
+import { CookingMode } from "@/components/cooking-mode";
+import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/recipe/$slug")({
