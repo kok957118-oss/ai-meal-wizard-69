@@ -61,6 +61,38 @@ function PlannerPage() {
   const [mealType, setMealType] = useState("Dinner");
   const [recipeId, setRecipeId] = useState("");
   const [saving, setSaving] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [autoGroc, setAutoGroc] = useState(false);
+  const aiPlannerEnabled = useFeatureFlag("personalized_planner", true);
+
+  async function generateAiPlan() {
+    if (!user) return;
+    setAiLoading(true);
+    try {
+      const { suggestions } = await generatePersonalizedPlan({ data: { days: 7, startDate: fromISO } });
+      toast.success(`Generated ${suggestions.length} meal ideas`, {
+        description: suggestions.slice(0, 3).map((s) => `${s.meal_type}: ${s.name}`).join(" · "),
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't generate plan");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  async function autoGrocery() {
+    setAutoGroc(true);
+    try {
+      const { inserted } = await buildGroceryFromPlan({ data: { from: fromISO, to: toISO } });
+      toast.success(`Added ${inserted} items to your grocery list`, {
+        action: { label: "View", onClick: () => navigate({ to: "/list" }) },
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't build grocery list");
+    } finally {
+      setAutoGroc(false);
+    }
+  }
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth", replace: true });
