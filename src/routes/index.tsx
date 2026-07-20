@@ -264,6 +264,11 @@ function Index() {
         ))}
       </section>
 
+      {/* Plan status + premium features */}
+      <section className="px-4 pt-6">
+        <PlanStatusCard />
+      </section>
+
       {/* Trending recipes */}
       <section className="pt-8">
         <div className="mb-3 flex items-end justify-between px-4">
