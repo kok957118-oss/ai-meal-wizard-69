@@ -24,6 +24,8 @@ import { setContinueCooking } from "@/lib/continue-cooking";
 import { CookingMode } from "@/components/cooking-mode";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { Button } from "@/components/ui/button";
+import { SubstitutionsButton } from "@/components/substitutions-popover";
+import { RecipeRatings } from "@/components/recipe-ratings";
 
 export const Route = createFileRoute("/recipe/$slug")({
   loader: async ({ context, params }) => {
@@ -292,7 +294,10 @@ function RecipePage() {
                   key={i}
                   className="flex items-baseline justify-between gap-3 border-b border-border/60 pb-2 text-sm"
                 >
-                  <span>{ing.name}</span>
+                  <span className="flex items-center gap-2">
+                    {ing.name}
+                    <SubstitutionsButton ingredient={ing.name} recipeName={r.name} />
+                  </span>
                   {ing.quantity && (
                     <span className="shrink-0 text-muted-foreground">{ing.quantity}</span>
                   )}
@@ -324,6 +329,8 @@ function RecipePage() {
             </p>
           </div>
         )}
+
+        <RecipeRatings recipeId={r.id} />
       </div>
       {cookingOpen && (
         <CookingMode name={r.name} steps={steps} onClose={() => setCookingOpen(false)} />
