@@ -294,7 +294,10 @@ function RecipePage() {
                   key={i}
                   className="flex items-baseline justify-between gap-3 border-b border-border/60 pb-2 text-sm"
                 >
-                  <span>{ing.name}</span>
+                  <span className="flex items-center gap-2">
+                    {ing.name}
+                    <SubstitutionsButton ingredient={ing.name} recipeName={r.name} />
+                  </span>
                   {ing.quantity && (
                     <span className="shrink-0 text-muted-foreground">{ing.quantity}</span>
                   )}
