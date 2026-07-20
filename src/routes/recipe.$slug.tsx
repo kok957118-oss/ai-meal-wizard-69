@@ -24,6 +24,8 @@ import { setContinueCooking } from "@/lib/continue-cooking";
 import { CookingMode } from "@/components/cooking-mode";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { Button } from "@/components/ui/button";
+import { SubstitutionsButton } from "@/components/substitutions-popover";
+import { RecipeRatings } from "@/components/recipe-ratings";
 
 export const Route = createFileRoute("/recipe/$slug")({
   loader: async ({ context, params }) => {
