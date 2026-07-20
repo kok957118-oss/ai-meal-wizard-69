@@ -28,6 +28,7 @@ import { TrendingCard } from "@/components/recipe-card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PlanStatusCard } from "@/components/plan-status-card";
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) =>
