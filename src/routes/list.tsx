@@ -89,22 +89,27 @@ function ListPage() {
 
       <ul className="mt-4 space-y-2">
         {items === undefined ? (
-          <li className="flex justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          </li>
+          Array.from({ length: 5 }).map((_, i) => (
+            <li key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+              <Skeleton className="h-4 w-4 rounded" />
+              <Skeleton className="h-4 flex-1 max-w-[60%]" />
+            </li>
+          ))
         ) : items.length === 0 ? (
           <li className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground">
             Your list is empty. Add items or save ingredients from a recipe.
           </li>
         ) : (
-          items.map((item) => (
+          items.map((item, idx) => (
             <li
               key={item.id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
+              style={{ animationDelay: `${Math.min(idx, 8) * 30}ms` }}
+              className="rise-in md3-surface flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
             >
               <Checkbox
                 checked={item.checked}
                 onCheckedChange={(v) => toggle(item.id, v === true)}
+                aria-label={`Mark ${item.name} as ${item.checked ? "not done" : "done"}`}
               />
               <div className="flex-1">
                 <span
@@ -122,7 +127,8 @@ function ListPage() {
               </div>
               <button
                 onClick={() => remove(item.id)}
-                className="text-muted-foreground transition-colors hover:text-destructive"
+                aria-label={`Remove ${item.name}`}
+                className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
