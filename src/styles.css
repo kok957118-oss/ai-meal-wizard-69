@@ -244,3 +244,66 @@
   50% { background-position: 100% 50%; }
 }
 
+/* ---------- Material Design 3 motion + a11y polish ---------- */
+
+@theme inline {
+  --ease-md3-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-md3-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --ease-md3-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@keyframes md3-page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@utility page-enter {
+  animation: md3-page-enter 260ms var(--ease-md3-decel) both;
+}
+
+@utility md3-surface {
+  transition: transform 180ms var(--ease-md3-standard),
+              box-shadow 180ms var(--ease-md3-standard),
+              background-color 180ms var(--ease-md3-standard);
+  &:hover { transform: translateY(-1px); box-shadow: 0 6px 20px -12px oklch(0 0 0 / 0.25); }
+  &:active { transform: translateY(0) scale(0.98); }
+}
+
+@keyframes md3-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@utility rise-in {
+  animation: md3-rise 320ms var(--ease-md3-decel) both;
+}
+
+@keyframes md3-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@utility skeleton-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--color-foreground) 8%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: md3-shimmer 1.6s linear infinite;
+}
+
