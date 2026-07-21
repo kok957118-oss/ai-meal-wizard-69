@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Plus, Trash2, Loader2, ShoppingCart, Sparkles } from "lucide-react";
+import { CalendarDays, Plus, Trash2, Loader2, ShoppingCart, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { myPlannerQuery, myFavoritesQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
