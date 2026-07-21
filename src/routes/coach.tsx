@@ -186,7 +186,7 @@ function CoachPage() {
             </div>
           ) : (
             <div key={i} className="flex justify-start">
-              <div className="rise-in prose prose-sm max-w-[92%] rounded-2xl rounded-bl-sm bg-card px-4 py-3 text-sm dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-headings:mt-2 prose-headings:mb-1 prose-headings:font-display">
+              <div className="rise-in max-w-[92%] space-y-2 rounded-2xl rounded-bl-sm bg-card px-4 py-3 text-sm leading-relaxed [&_h3]:font-display [&_h3]:text-base [&_h3]:mt-2 [&_li]:ml-4 [&_li]:list-disc [&_strong]:font-semibold [&_a]:underline">
                 <ReactMarkdown>{t.content}</ReactMarkdown>
               </div>
             </div>
