@@ -7,7 +7,7 @@ import { myPlannerQuery, myFavoritesQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
-import { generatePersonalizedPlan, buildGroceryFromPlan } from "@/lib/planner.functions";
+import { generatePersonalizedPlan, buildGroceryFromPlan, aiPlanAndShop } from "@/lib/planner.functions";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import {
   Select,
