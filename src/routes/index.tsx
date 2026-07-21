@@ -13,6 +13,7 @@ import {
   Calendar,
   ChevronRight,
   Play,
+  HeartPulse,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -245,9 +246,9 @@ function Index() {
       {/* Quick actions */}
       <section className="grid grid-cols-4 gap-2 px-4 pt-6">
         {[
+          { to: "/coach", icon: HeartPulse, label: "Nutrition Coach", sub: "Personalized food advice" },
           { to: "/chat", icon: MessageCircleQuestion, label: "AI Chat", sub: "Ask anything about food" },
           { to: "/scan", icon: Camera, label: "Scan Ingredients", sub: "Use your camera to scan items" },
-          { to: "/list", icon: ShoppingCart, label: "Grocery List", sub: "Add ingredients and shop smart" },
           { to: "/planner", icon: Calendar, label: "Meal Planner", sub: "Plan your meals for the week" },
         ].map((a) => (
           <Link
