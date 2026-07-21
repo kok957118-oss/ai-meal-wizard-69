@@ -165,9 +165,15 @@ function PlannerPage() {
         </div>
         <div className="col-span-2 flex flex-wrap gap-2 sm:col-auto">
           {aiPlannerEnabled && (
+            <Button size="sm" onClick={planAndShop} disabled={planShop}>
+              {planShop ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+              Plan & shop
+            </Button>
+          )}
+          {aiPlannerEnabled && (
             <Button size="sm" variant="outline" onClick={generateAiPlan} disabled={aiLoading}>
               {aiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-              AI plan
+              AI ideas
             </Button>
           )}
           <Button size="sm" variant="outline" onClick={autoGrocery} disabled={autoGroc || !plans || plans.length === 0}>
