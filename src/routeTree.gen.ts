@@ -20,6 +20,7 @@ import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as ListRouteImport } from './routes/list'
 import { Route as GroceryRouteImport } from './routes/grocery'
 import { Route as CookbookRouteImport } from './routes/cookbook'
+import { Route as CoachRouteImport } from './routes/coach'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -85,6 +86,11 @@ const CookbookRoute = CookbookRouteImport.update({
   path: '/cookbook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoachRoute = CoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChatRoute = ChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
+  '/coach': typeof CoachRoute
   '/cookbook': typeof CookbookRoute
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
+  '/coach': typeof CoachRoute
   '/cookbook': typeof CookbookRoute
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
+  '/coach': typeof CoachRoute
   '/cookbook': typeof CookbookRoute
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/chat'
+    | '/coach'
     | '/cookbook'
     | '/grocery'
     | '/list'
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/chat'
+    | '/coach'
     | '/cookbook'
     | '/grocery'
     | '/list'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/chat'
+    | '/coach'
     | '/cookbook'
     | '/grocery'
     | '/list'
@@ -274,6 +286,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   ChatRoute: typeof ChatRoute
+  CoachRoute: typeof CoachRoute
   CookbookRoute: typeof CookbookRoute
   GroceryRoute: typeof GroceryRoute
   ListRoute: typeof ListRoute
@@ -370,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CookbookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/coach': {
+      id: '/coach'
+      path: '/coach'
+      fullPath: '/coach'
+      preLoaderRoute: typeof CoachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chat': {
       id: '/chat'
       path: '/chat'
@@ -442,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   ChatRoute: ChatRoute,
+  CoachRoute: CoachRoute,
   CookbookRoute: CookbookRoute,
   GroceryRoute: GroceryRoute,
   ListRoute: ListRoute,
