@@ -1,13 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Plus, Trash2, Loader2, ShoppingCart, Sparkles } from "lucide-react";
+import { CalendarDays, Plus, Trash2, Loader2, ShoppingCart, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { myPlannerQuery, myFavoritesQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
-import { generatePersonalizedPlan, buildGroceryFromPlan } from "@/lib/planner.functions";
+import { generatePersonalizedPlan, buildGroceryFromPlan, aiPlanAndShop } from "@/lib/planner.functions";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import {
   Select,
@@ -63,7 +63,28 @@ function PlannerPage() {
   const [saving, setSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [autoGroc, setAutoGroc] = useState(false);
+  const [planShop, setPlanShop] = useState(false);
   const aiPlannerEnabled = useFeatureFlag("personalized_planner", true);
+
+  async function planAndShop() {
+    if (!user) return;
+    setPlanShop(true);
+    try {
+      const res = await aiPlanAndShop({
+        data: { days: 7, startDate: fromISO, replaceExisting: false },
+      });
+      await refresh();
+      queryClient.invalidateQueries({ queryKey: ["grocery"] });
+      toast.success(`Planned ${res.meals} meals, added ${res.groceries} to your list`, {
+        description: res.skipped > 0 ? `Skipped ${res.skipped} you already have.` : undefined,
+        action: { label: "View list", onClick: () => navigate({ to: "/list" }) },
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't plan & shop");
+    } finally {
+      setPlanShop(false);
+    }
+  }
 
   async function generateAiPlan() {
     if (!user) return;
@@ -144,9 +165,15 @@ function PlannerPage() {
         </div>
         <div className="col-span-2 flex flex-wrap gap-2 sm:col-auto">
           {aiPlannerEnabled && (
+            <Button size="sm" onClick={planAndShop} disabled={planShop}>
+              {planShop ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+              Plan & shop
+            </Button>
+          )}
+          {aiPlannerEnabled && (
             <Button size="sm" variant="outline" onClick={generateAiPlan} disabled={aiLoading}>
               {aiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-              AI plan
+              AI ideas
             </Button>
           )}
           <Button size="sm" variant="outline" onClick={autoGrocery} disabled={autoGroc || !plans || plans.length === 0}>
