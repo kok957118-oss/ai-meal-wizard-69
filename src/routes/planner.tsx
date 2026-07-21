@@ -63,7 +63,28 @@ function PlannerPage() {
   const [saving, setSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [autoGroc, setAutoGroc] = useState(false);
+  const [planShop, setPlanShop] = useState(false);
   const aiPlannerEnabled = useFeatureFlag("personalized_planner", true);
+
+  async function planAndShop() {
+    if (!user) return;
+    setPlanShop(true);
+    try {
+      const res = await aiPlanAndShop({
+        data: { days: 7, startDate: fromISO, replaceExisting: false },
+      });
+      await refresh();
+      queryClient.invalidateQueries({ queryKey: ["grocery"] });
+      toast.success(`Planned ${res.meals} meals, added ${res.groceries} to your list`, {
+        description: res.skipped > 0 ? `Skipped ${res.skipped} you already have.` : undefined,
+        action: { label: "View list", onClick: () => navigate({ to: "/list" }) },
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't plan & shop");
+    } finally {
+      setPlanShop(false);
+    }
+  }
 
   async function generateAiPlan() {
     if (!user) return;
