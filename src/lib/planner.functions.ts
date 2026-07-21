@@ -136,6 +136,190 @@ export const buildGroceryFromPlan = createServerFn({ method: "POST" })
     return { inserted: rows.length };
   });
 
+// One-click: AI plan → persist meals → build aggregated grocery list.
+const PlanAndShopInput = z.object({
+  days: z.number().int().min(1).max(7).default(7),
+  meals: z.array(z.string()).default(["Breakfast", "Lunch", "Dinner"]),
+  startDate: z.string().optional(),
+  replaceExisting: z.boolean().default(false),
+});
+
+type ShopItem = { name: string; quantity?: string; category?: string };
+type ShopMeal = {
+  day: number;
+  meal_type: string;
+  name: string;
+  calories?: number;
+  ingredients: ShopItem[];
+};
+
+export const aiPlanAndShop = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => PlanAndShopInput.parse(v))
+  .handler(async ({ data, context }) => {
+    await enforceRateLimit("ai_planner", context.userId, 5);
+    const { supabase, userId } = context;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select(
+        "goal,activity_level,allergies,budget_per_day,dietary_preferences,family_size,weight_kg,height_cm,age",
+      )
+      .eq("id", userId)
+      .maybeSingle();
+
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("Missing LOVABLE_API_KEY");
+
+    const start = data.startDate ? new Date(data.startDate) : new Date();
+    const dates: string[] = [];
+    for (let i = 0; i < data.days; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      dates.push(d.toISOString().slice(0, 10));
+    }
+    const fromISO = dates[0];
+    const toISO = dates[dates.length - 1];
+
+    const prompt = `Build a ${data.days}-day meal plan with meals: ${data.meals.join(", ")}.
+Profile:
+- Goal: ${profile?.goal ?? "general wellness"}
+- Activity: ${profile?.activity_level ?? "moderate"}
+- Allergies (must avoid): ${(profile?.allergies ?? []).join(", ") || "none"}
+- Dietary preferences: ${(profile?.dietary_preferences ?? []).join(", ") || "none"}
+- Daily budget: ${profile?.budget_per_day ? `$${profile.budget_per_day}` : "flexible"}
+- Family size: ${profile?.family_size ?? 1}
+
+For EACH meal, include a compact ingredient list scaled for the family size.
+Use short pantry-friendly names ("chicken breast", "olive oil", "spinach").
+Group category as one of: Produce, Meat, Dairy, Pantry, Grains, Frozen, Bakery, Spices, Other.
+
+Reply ONLY as strict JSON with this exact shape:
+{"plan":[{"day":1,"meal_type":"Breakfast","name":"...","calories":450,"ingredients":[{"name":"eggs","quantity":"4","category":"Dairy"}]}]}
+Days: 1..${data.days}. One entry per meal per day.`;
+
+    const t0 = Date.now();
+    let suggestions: ShopMeal[] = [];
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a certified nutritionist and chef. Respond with strict JSON only. Never include allergens the user must avoid.",
+            },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
+      if (!res.ok) throw new Error(`AI ${res.status}`);
+      const j = (await res.json()) as { choices: { message: { content: string } }[] };
+      const raw = j.choices?.[0]?.message?.content ?? "{}";
+      const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+      const s = cleaned.indexOf("{");
+      const e = cleaned.lastIndexOf("}");
+      const parsed = JSON.parse(cleaned.slice(s, e + 1)) as { plan: ShopMeal[] };
+      suggestions = (parsed.plan ?? []).filter((p) => p && p.name && p.meal_type);
+    } catch (err) {
+      void trackEvent({
+        user_id: userId,
+        kind: "ai",
+        name: "ai.plan_and_shop",
+        latency_ms: Date.now() - t0,
+        success: false,
+        error: err instanceof Error ? err.message.slice(0, 500) : String(err),
+      });
+      throw err;
+    }
+
+    // Persist meal_plans (as custom entries).
+    if (data.replaceExisting) {
+      await supabase
+        .from("meal_plans")
+        .delete()
+        .gte("plan_date", fromISO)
+        .lte("plan_date", toISO);
+    }
+
+    const planRows = suggestions.map((m) => ({
+      user_id: userId,
+      plan_date: dates[Math.max(0, Math.min(m.day - 1, dates.length - 1))],
+      meal_type: m.meal_type,
+      custom_name: m.name,
+      recipe_id: null as string | null,
+    }));
+    if (planRows.length > 0) {
+      const { error: pErr } = await supabase.from("meal_plans").insert(planRows);
+      if (pErr) throw new Error(pErr.message);
+    }
+
+    // Aggregate ingredients into grocery items.
+    const map = new Map<
+      string,
+      { name: string; quantity: string | null; category: string | null }
+    >();
+    for (const m of suggestions) {
+      for (const ing of m.ingredients ?? []) {
+        if (!ing?.name) continue;
+        const k = ing.name.trim().toLowerCase();
+        const cur = map.get(k) ?? {
+          name: ing.name.trim(),
+          quantity: null,
+          category: ing.category ?? null,
+        };
+        if (ing.quantity) {
+          cur.quantity = cur.quantity ? `${cur.quantity} + ${ing.quantity}` : ing.quantity;
+        }
+        if (!cur.category && ing.category) cur.category = ing.category;
+        map.set(k, cur);
+      }
+    }
+
+    // Skip items the user already has unchecked in their list.
+    const { data: existing } = await supabase
+      .from("grocery_items")
+      .select("name")
+      .eq("checked", false);
+    const have = new Set((existing ?? []).map((r) => r.name.trim().toLowerCase()));
+
+    const rows = Array.from(map.entries())
+      .filter(([k]) => !have.has(k))
+      .map(([, v]) => ({
+        user_id: userId,
+        name: v.name,
+        quantity: v.quantity,
+        category: v.category,
+      }));
+
+    let inserted = 0;
+    if (rows.length > 0) {
+      const { error: gErr } = await supabase.from("grocery_items").insert(rows);
+      if (gErr) throw new Error(gErr.message);
+      inserted = rows.length;
+    }
+
+    void trackEvent({
+      user_id: userId,
+      kind: "planner",
+      name: "ai.plan_and_shop",
+      latency_ms: Date.now() - t0,
+      success: true,
+      metadata: { meals: planRows.length, groceries: inserted, days: data.days },
+    });
+
+    return {
+      meals: planRows.length,
+      groceries: inserted,
+      skipped: map.size - inserted,
+      from: fromISO,
+      to: toISO,
+    };
+  });
+
 // Ingredient substitution suggestions
 export const suggestSubstitutions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
