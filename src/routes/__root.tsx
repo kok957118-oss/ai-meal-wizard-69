@@ -144,7 +144,6 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  // The home route renders its own greeting header, so skip the shared one there.
   const showAppHeader = pathname !== "/";
 
   useEffect(() => {
@@ -165,7 +164,9 @@ function RootComponent() {
             <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-background pb-20">
               {showAppHeader && <AppHeader />}
               <AuthGate>
-                <Outlet />
+                <div key={pathname} className="page-enter contents">
+                  <Outlet />
+                </div>
               </AuthGate>
               <BottomNav />
             </div>
