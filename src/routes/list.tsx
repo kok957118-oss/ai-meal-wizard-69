@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, ShoppingCart, Loader2 } from "lucide-react";
+import { Plus, Trash2, ShoppingCart } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { myGroceryQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
