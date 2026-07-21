@@ -164,7 +164,7 @@ function RootComponent() {
             <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-background pb-20">
               {showAppHeader && <AppHeader />}
               <AuthGate>
-                <div key={pathname} className="page-enter contents">
+                <div key={pathname} className="page-enter flex flex-1 flex-col">
                   <Outlet />
                 </div>
               </AuthGate>
