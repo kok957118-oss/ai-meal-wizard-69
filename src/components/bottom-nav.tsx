@@ -21,7 +21,7 @@ export function BottomNav() {
             key={to}
             to={to}
             activeOptions={{ exact }}
-            className="flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-muted-foreground transition-colors"
+            className="md3-surface flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-muted-foreground"
             activeProps={{ className: "text-foreground" }}
           >
             {({ isActive }: { isActive: boolean }) => (
