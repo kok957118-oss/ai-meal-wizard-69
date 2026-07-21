@@ -13,6 +13,7 @@ import {
   Calendar,
   ChevronRight,
   Play,
+  HeartPulse,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
