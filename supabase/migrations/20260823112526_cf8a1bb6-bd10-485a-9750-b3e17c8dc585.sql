@@ -1,1 +1,0 @@
-REVOKE EXECUTE ON FUNCTION public.apply_xp_event() FROM PUBLIC, anon, authenticated;
