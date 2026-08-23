@@ -1,0 +1,12 @@
+REVOKE ALL ON FUNCTION public.protect_restaurant_status() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.recalc_restaurant_rating() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.handle_follow_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.handle_hashtag_usage_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.handle_post_comment_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.handle_post_count_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.handle_post_like_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.handle_post_save_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.handle_recipe_rating_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.ensure_referral_code() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.recalc_recipe_rating(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.check_rate_limit(text, text, integer) FROM PUBLIC, anon, authenticated;

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ScanRouteImport } from './routes/scan'
+import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -26,6 +27,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RestaurantSlugRouteImport } from './routes/restaurant.$slug'
 import { Route as RecipeSlugRouteImport } from './routes/recipe.$slug'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
@@ -44,6 +46,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestaurantsRoute = RestaurantsRouteImport.update({
+  id: '/restaurants',
+  path: '/restaurants',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -116,6 +123,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RestaurantSlugRoute = RestaurantSlugRouteImport.update({
+  id: '/restaurant/$slug',
+  path: '/restaurant/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecipeSlugRoute = RecipeSlugRouteImport.update({
   id: '/recipe/$slug',
   path: '/recipe/$slug',
@@ -153,12 +165,14 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurants': typeof RestaurantsRoute
   '/scan': typeof ScanRoute
   '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/recipe/$slug': typeof RecipeSlugRoute
+  '/restaurant/$slug': typeof RestaurantSlugRoute
   '/api/public/webhooks/revenuecat': typeof ApiPublicWebhooksRevenuecatRoute
 }
 export interface FileRoutesByTo {
@@ -176,12 +190,14 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurants': typeof RestaurantsRoute
   '/scan': typeof ScanRoute
   '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/recipe/$slug': typeof RecipeSlugRoute
+  '/restaurant/$slug': typeof RestaurantSlugRoute
   '/api/public/webhooks/revenuecat': typeof ApiPublicWebhooksRevenuecatRoute
 }
 export interface FileRoutesById {
@@ -200,12 +216,14 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurants': typeof RestaurantsRoute
   '/scan': typeof ScanRoute
   '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/recipe/$slug': typeof RecipeSlugRoute
+  '/restaurant/$slug': typeof RestaurantSlugRoute
   '/api/public/webhooks/revenuecat': typeof ApiPublicWebhooksRevenuecatRoute
 }
 export interface FileRouteTypes {
@@ -225,12 +243,14 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/reset-password'
+    | '/restaurants'
     | '/scan'
     | '/settings'
     | '/support'
     | '/legal/privacy'
     | '/legal/terms'
     | '/recipe/$slug'
+    | '/restaurant/$slug'
     | '/api/public/webhooks/revenuecat'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -248,12 +268,14 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/reset-password'
+    | '/restaurants'
     | '/scan'
     | '/settings'
     | '/support'
     | '/legal/privacy'
     | '/legal/terms'
     | '/recipe/$slug'
+    | '/restaurant/$slug'
     | '/api/public/webhooks/revenuecat'
   id:
     | '__root__'
@@ -271,12 +293,14 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/reset-password'
+    | '/restaurants'
     | '/scan'
     | '/settings'
     | '/support'
     | '/legal/privacy'
     | '/legal/terms'
     | '/recipe/$slug'
+    | '/restaurant/$slug'
     | '/api/public/webhooks/revenuecat'
   fileRoutesById: FileRoutesById
 }
@@ -295,12 +319,14 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RestaurantsRoute: typeof RestaurantsRoute
   ScanRoute: typeof ScanRoute
   SettingsRoute: typeof SettingsRoute
   SupportRoute: typeof SupportRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
   RecipeSlugRoute: typeof RecipeSlugRoute
+  RestaurantSlugRoute: typeof RestaurantSlugRoute
   ApiPublicWebhooksRevenuecatRoute: typeof ApiPublicWebhooksRevenuecatRoute
 }
 
@@ -325,6 +351,13 @@ declare module '@tanstack/react-router' {
       path: '/scan'
       fullPath: '/scan'
       preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restaurants': {
+      id: '/restaurants'
+      path: '/restaurants'
+      fullPath: '/restaurants'
+      preLoaderRoute: typeof RestaurantsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -425,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/restaurant/$slug': {
+      id: '/restaurant/$slug'
+      path: '/restaurant/$slug'
+      fullPath: '/restaurant/$slug'
+      preLoaderRoute: typeof RestaurantSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recipe/$slug': {
       id: '/recipe/$slug'
       path: '/recipe/$slug'
@@ -471,12 +511,14 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RestaurantsRoute: RestaurantsRoute,
   ScanRoute: ScanRoute,
   SettingsRoute: SettingsRoute,
   SupportRoute: SupportRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
   RecipeSlugRoute: RecipeSlugRoute,
+  RestaurantSlugRoute: RestaurantSlugRoute,
   ApiPublicWebhooksRevenuecatRoute: ApiPublicWebhooksRevenuecatRoute,
 }
 export const routeTree = rootRouteImport
