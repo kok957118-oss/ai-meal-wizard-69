@@ -74,6 +74,48 @@ export type Database = {
         }
         Relationships: []
       }
+      challenges: {
+        Row: {
+          action: string
+          code: string
+          created_at: string
+          description: string | null
+          goal: number
+          id: string
+          is_active: boolean
+          kind: string
+          premium_only: boolean
+          title: string
+          xp_reward: number
+        }
+        Insert: {
+          action: string
+          code: string
+          created_at?: string
+          description?: string | null
+          goal: number
+          id?: string
+          is_active?: boolean
+          kind: string
+          premium_only?: boolean
+          title: string
+          xp_reward: number
+        }
+        Update: {
+          action?: string
+          code?: string
+          created_at?: string
+          description?: string | null
+          goal?: number
+          id?: string
+          is_active?: boolean
+          kind?: string
+          premium_only?: boolean
+          title?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       dish_searches: {
         Row: {
           count: number
@@ -1708,6 +1750,68 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          code: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_challenges: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          period_key: string
+          progress: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          period_key: string
+          progress?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          period_key?: string
+          progress?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenges_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1725,6 +1829,69 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          created_at: string
+          current_streak: number
+          elite_reward_claimed_at: string | null
+          last_active_date: string | null
+          longest_streak: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          elite_reward_claimed_at?: string | null
+          last_active_date?: string | null
+          longest_streak?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          elite_reward_claimed_at?: string | null
+          last_active_date?: string | null
+          longest_streak?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      xp_events: {
+        Row: {
+          action: string
+          created_at: string
+          dedupe_key: string
+          id: string
+          metadata: Json
+          points: number
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          dedupe_key: string
+          id?: string
+          metadata?: Json
+          points: number
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          dedupe_key?: string
+          id?: string
+          metadata?: Json
+          points?: number
           user_id?: string
         }
         Relationships: []
