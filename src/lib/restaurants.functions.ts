@@ -74,7 +74,7 @@ export const listRestaurantOrders = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { fetchRestaurantOrders } = await import("@/lib/restaurants.server");
-    return fetchRestaurantOrders(context.userId, data.restaurantId, data.scope),;
+    return fetchRestaurantOrders(context.userId, data.restaurantId, data.scope);
   });
 
 export const updateOrderStatus = createServerFn({ method: "POST" })
@@ -90,7 +90,7 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { setOrderStatus } = await import("@/lib/restaurants.server");
-    return setOrderStatus(context.userId, data.orderId, data.status, data.reason),;
+    return setOrderStatus(context.userId, data.orderId, data.status, data.reason);
   });
 
 export const getRestaurantStats = createServerFn({ method: "POST" })
