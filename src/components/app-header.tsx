@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChefHat } from "lucide-react";
+import logoAsset from "@/assets/mealmate-logo.png.asset.json";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import {
