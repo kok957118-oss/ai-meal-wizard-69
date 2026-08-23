@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ScanRouteImport } from './routes/scan'
+import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -44,6 +45,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestaurantsRoute = RestaurantsRouteImport.update({
+  id: '/restaurants',
+  path: '/restaurants',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurants': typeof RestaurantsRoute
   '/scan': typeof ScanRoute
   '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurants': typeof RestaurantsRoute
   '/scan': typeof ScanRoute
   '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurants': typeof RestaurantsRoute
   '/scan': typeof ScanRoute
   '/settings': typeof SettingsRoute
   '/support': typeof SupportRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/reset-password'
+    | '/restaurants'
     | '/scan'
     | '/settings'
     | '/support'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/reset-password'
+    | '/restaurants'
     | '/scan'
     | '/settings'
     | '/support'
@@ -271,6 +282,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/reset-password'
+    | '/restaurants'
     | '/scan'
     | '/settings'
     | '/support'
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RestaurantsRoute: typeof RestaurantsRoute
   ScanRoute: typeof ScanRoute
   SettingsRoute: typeof SettingsRoute
   SupportRoute: typeof SupportRoute
@@ -325,6 +338,13 @@ declare module '@tanstack/react-router' {
       path: '/scan'
       fullPath: '/scan'
       preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restaurants': {
+      id: '/restaurants'
+      path: '/restaurants'
+      fullPath: '/restaurants'
+      preLoaderRoute: typeof RestaurantsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -471,6 +491,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RestaurantsRoute: RestaurantsRoute,
   ScanRoute: ScanRoute,
   SettingsRoute: SettingsRoute,
   SupportRoute: SupportRoute,
