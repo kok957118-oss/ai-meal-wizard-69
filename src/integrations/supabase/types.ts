@@ -1755,10 +1755,6 @@ export type Database = {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
       }
-      is_restaurant_public: {
-        Args: { _restaurant_id: string }
-        Returns: boolean
-      }
       recalc_recipe_rating: { Args: { _recipe_id: string }; Returns: undefined }
     }
     Enums: {
