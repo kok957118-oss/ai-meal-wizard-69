@@ -94,3 +94,35 @@ export const placeOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => OrderInputSchema.parse(v))
   .handler(async ({ data, context }) => persistOrder(context.userId, data));
+
+export const adminListRestaurantApplications = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z
+      .object({
+        status: z
+          .enum(["all", "pending", "approved", "rejected", "changes_requested", "suspended"])
+          .default("pending"),
+      })
+      .parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const { adminListApplications } = await import("@/lib/restaurants.server");
+    return adminListApplications(context.userId, data.status);
+  });
+
+export const adminReviewRestaurantApplication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z
+      .object({
+        applicationId: z.string().uuid(),
+        decision: z.enum(["approved", "rejected", "changes_requested", "suspended"]),
+        notes: z.string().max(1000).optional(),
+      })
+      .parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const { adminReviewApplication } = await import("@/lib/restaurants.server");
+    return adminReviewApplication(context.userId, data);
+  });
