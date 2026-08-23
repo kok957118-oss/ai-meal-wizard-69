@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChefHat } from "lucide-react";
+import logoAsset from "@/assets/mealmate-logo.png.asset.json";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,10 +32,14 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <ChefHat className="h-4 w-4" />
-          </span>
+        <Link to="/" className="flex items-center gap-2" aria-label="MealMate home">
+          <img
+            src={logoAsset.url}
+            alt="MealMate logo"
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-full object-contain"
+          />
           <span className="font-display text-2xl leading-none">MealMate</span>
         </Link>
 
