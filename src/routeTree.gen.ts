@@ -18,6 +18,8 @@ import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as PlannerRouteImport } from './routes/planner'
+import { Route as PartnerRouteImport } from './routes/partner'
+import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as ListRouteImport } from './routes/list'
 import { Route as GroceryRouteImport } from './routes/grocery'
 import { Route as CookbookRouteImport } from './routes/cookbook'
@@ -30,6 +32,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RestaurantSlugRouteImport } from './routes/restaurant.$slug'
 import { Route as RecipeSlugRouteImport } from './routes/recipe.$slug'
+import { Route as OrderIdRouteImport } from './routes/order.$id'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as ApiPublicWebhooksRevenuecatRouteImport } from './routes/api/public/webhooks.revenuecat'
@@ -77,6 +80,16 @@ const PremiumRoute = PremiumRouteImport.update({
 const PlannerRoute = PlannerRouteImport.update({
   id: '/planner',
   path: '/planner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerRoute = PartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListRoute = ListRouteImport.update({
@@ -139,6 +152,11 @@ const RecipeSlugRoute = RecipeSlugRouteImport.update({
   path: '/recipe/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrderIdRoute = OrderIdRouteImport.update({
+  id: '/order/$id',
+  path: '/order/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
   id: '/legal/terms',
   path: '/legal/terms',
@@ -167,6 +185,8 @@ export interface FileRoutesByFullPath {
   '/cookbook': typeof CookbookRoute
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
+  '/orders': typeof OrdersRoute
+  '/partner': typeof PartnerRoute
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -178,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/order/$id': typeof OrderIdRoute
   '/recipe/$slug': typeof RecipeSlugRoute
   '/restaurant/$slug': typeof RestaurantSlugRoute
   '/api/public/webhooks/revenuecat': typeof ApiPublicWebhooksRevenuecatRoute
@@ -193,6 +214,8 @@ export interface FileRoutesByTo {
   '/cookbook': typeof CookbookRoute
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
+  '/orders': typeof OrdersRoute
+  '/partner': typeof PartnerRoute
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -204,6 +227,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/order/$id': typeof OrderIdRoute
   '/recipe/$slug': typeof RecipeSlugRoute
   '/restaurant/$slug': typeof RestaurantSlugRoute
   '/api/public/webhooks/revenuecat': typeof ApiPublicWebhooksRevenuecatRoute
@@ -220,6 +244,8 @@ export interface FileRoutesById {
   '/cookbook': typeof CookbookRoute
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
+  '/orders': typeof OrdersRoute
+  '/partner': typeof PartnerRoute
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -231,6 +257,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/order/$id': typeof OrderIdRoute
   '/recipe/$slug': typeof RecipeSlugRoute
   '/restaurant/$slug': typeof RestaurantSlugRoute
   '/api/public/webhooks/revenuecat': typeof ApiPublicWebhooksRevenuecatRoute
@@ -248,6 +275,8 @@ export interface FileRouteTypes {
     | '/cookbook'
     | '/grocery'
     | '/list'
+    | '/orders'
+    | '/partner'
     | '/planner'
     | '/premium'
     | '/profile'
@@ -259,6 +288,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/order/$id'
     | '/recipe/$slug'
     | '/restaurant/$slug'
     | '/api/public/webhooks/revenuecat'
@@ -274,6 +304,8 @@ export interface FileRouteTypes {
     | '/cookbook'
     | '/grocery'
     | '/list'
+    | '/orders'
+    | '/partner'
     | '/planner'
     | '/premium'
     | '/profile'
@@ -285,6 +317,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/order/$id'
     | '/recipe/$slug'
     | '/restaurant/$slug'
     | '/api/public/webhooks/revenuecat'
@@ -300,6 +333,8 @@ export interface FileRouteTypes {
     | '/cookbook'
     | '/grocery'
     | '/list'
+    | '/orders'
+    | '/partner'
     | '/planner'
     | '/premium'
     | '/profile'
@@ -311,6 +346,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/order/$id'
     | '/recipe/$slug'
     | '/restaurant/$slug'
     | '/api/public/webhooks/revenuecat'
@@ -327,6 +363,8 @@ export interface RootRouteChildren {
   CookbookRoute: typeof CookbookRoute
   GroceryRoute: typeof GroceryRoute
   ListRoute: typeof ListRoute
+  OrdersRoute: typeof OrdersRoute
+  PartnerRoute: typeof PartnerRoute
   PlannerRoute: typeof PlannerRoute
   PremiumRoute: typeof PremiumRoute
   ProfileRoute: typeof ProfileRoute
@@ -338,6 +376,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  OrderIdRoute: typeof OrderIdRoute
   RecipeSlugRoute: typeof RecipeSlugRoute
   RestaurantSlugRoute: typeof RestaurantSlugRoute
   ApiPublicWebhooksRevenuecatRoute: typeof ApiPublicWebhooksRevenuecatRoute
@@ -406,6 +445,20 @@ declare module '@tanstack/react-router' {
       path: '/planner'
       fullPath: '/planner'
       preLoaderRoute: typeof PlannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner': {
+      id: '/partner'
+      path: '/partner'
+      fullPath: '/partner'
+      preLoaderRoute: typeof PartnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/list': {
@@ -492,6 +545,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipeSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/order/$id': {
+      id: '/order/$id'
+      path: '/order/$id'
+      fullPath: '/order/$id'
+      preLoaderRoute: typeof OrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal/terms': {
       id: '/legal/terms'
       path: '/legal/terms'
@@ -527,6 +587,8 @@ const rootRouteChildren: RootRouteChildren = {
   CookbookRoute: CookbookRoute,
   GroceryRoute: GroceryRoute,
   ListRoute: ListRoute,
+  OrdersRoute: OrdersRoute,
+  PartnerRoute: PartnerRoute,
   PlannerRoute: PlannerRoute,
   PremiumRoute: PremiumRoute,
   ProfileRoute: ProfileRoute,
@@ -538,6 +600,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
+  OrderIdRoute: OrderIdRoute,
   RecipeSlugRoute: RecipeSlugRoute,
   RestaurantSlugRoute: RestaurantSlugRoute,
   ApiPublicWebhooksRevenuecatRoute: ApiPublicWebhooksRevenuecatRoute,
