@@ -268,7 +268,7 @@ export async function claimEliteRewardFor(userId: string) {
   } else {
     await supabaseAdmin.from("subscriptions").insert({
       user_id: userId,
-      tier: "premium",
+      tier: "promo",
       status: "active",
       is_manual: true,
       auto_renew: false,
