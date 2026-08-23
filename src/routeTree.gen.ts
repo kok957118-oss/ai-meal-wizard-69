@@ -18,6 +18,7 @@ import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as PlannerRouteImport } from './routes/planner'
+import { Route as PartnerRouteImport } from './routes/partner'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as ListRouteImport } from './routes/list'
 import { Route as GroceryRouteImport } from './routes/grocery'
@@ -79,6 +80,11 @@ const PremiumRoute = PremiumRouteImport.update({
 const PlannerRoute = PlannerRouteImport.update({
   id: '/planner',
   path: '/planner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerRoute = PartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrdersRoute = OrdersRouteImport.update({
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
   '/orders': typeof OrdersRoute
+  '/partner': typeof PartnerRoute
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -208,6 +215,7 @@ export interface FileRoutesByTo {
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
   '/orders': typeof OrdersRoute
+  '/partner': typeof PartnerRoute
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -237,6 +245,7 @@ export interface FileRoutesById {
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
   '/orders': typeof OrdersRoute
+  '/partner': typeof PartnerRoute
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -267,6 +276,7 @@ export interface FileRouteTypes {
     | '/grocery'
     | '/list'
     | '/orders'
+    | '/partner'
     | '/planner'
     | '/premium'
     | '/profile'
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/grocery'
     | '/list'
     | '/orders'
+    | '/partner'
     | '/planner'
     | '/premium'
     | '/profile'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/grocery'
     | '/list'
     | '/orders'
+    | '/partner'
     | '/planner'
     | '/premium'
     | '/profile'
@@ -352,6 +364,7 @@ export interface RootRouteChildren {
   GroceryRoute: typeof GroceryRoute
   ListRoute: typeof ListRoute
   OrdersRoute: typeof OrdersRoute
+  PartnerRoute: typeof PartnerRoute
   PlannerRoute: typeof PlannerRoute
   PremiumRoute: typeof PremiumRoute
   ProfileRoute: typeof ProfileRoute
@@ -432,6 +445,13 @@ declare module '@tanstack/react-router' {
       path: '/planner'
       fullPath: '/planner'
       preLoaderRoute: typeof PlannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner': {
+      id: '/partner'
+      path: '/partner'
+      fullPath: '/partner'
+      preLoaderRoute: typeof PartnerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/orders': {
@@ -568,6 +588,7 @@ const rootRouteChildren: RootRouteChildren = {
   GroceryRoute: GroceryRoute,
   ListRoute: ListRoute,
   OrdersRoute: OrdersRoute,
+  PartnerRoute: PartnerRoute,
   PlannerRoute: PlannerRoute,
   PremiumRoute: PremiumRoute,
   ProfileRoute: ProfileRoute,
