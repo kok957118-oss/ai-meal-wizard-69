@@ -6,10 +6,12 @@ export function CookingMode({
   name,
   steps,
   onClose,
+  onComplete,
 }: {
   name: string;
   steps: string[];
   onClose: () => void;
+  onComplete?: () => void;
 }) {
   const [i, setI] = useState(0);
   const [seconds, setSeconds] = useState<number | null>(null);
@@ -96,7 +98,14 @@ export function CookingMode({
             Next <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         ) : (
-          <Button onClick={onClose}>Done</Button>
+          <Button
+            onClick={() => {
+              onComplete?.();
+              onClose();
+            }}
+          >
+            Done
+          </Button>
         )}
       </footer>
     </div>

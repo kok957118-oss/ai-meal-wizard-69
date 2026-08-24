@@ -22,6 +22,7 @@ import { regenerateRecipeImage } from "@/lib/ai.functions";
 import { trackRecipeView } from "@/lib/engagement.functions";
 import { setContinueCooking } from "@/lib/continue-cooking";
 import { CookingMode } from "@/components/cooking-mode";
+import { awardXp } from "@/lib/xp.functions";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { Button } from "@/components/ui/button";
 import { SubstitutionsButton } from "@/components/substitutions-popover";
@@ -333,7 +334,25 @@ function RecipePage() {
         <RecipeRatings recipeId={r.id} />
       </div>
       {cookingOpen && (
-        <CookingMode name={r.name} steps={steps} onClose={() => setCookingOpen(false)} />
+        <CookingMode
+          name={r.name}
+          steps={steps}
+          onClose={() => setCookingOpen(false)}
+          onComplete={async () => {
+            if (!user) return;
+            try {
+              const res = await awardXp({
+                data: { action: "recipe_cooked", entityId: r.id },
+              });
+              if (res.awarded) {
+                toast.success(`+${res.points} XP — well cooked!`);
+                queryClient.invalidateQueries({ queryKey: ["gamification"] });
+              }
+            } catch {
+              /* XP is best-effort */
+            }
+          }}
+        />
       )}
     </main>
   );

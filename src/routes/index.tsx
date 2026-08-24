@@ -30,6 +30,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PlanStatusCard } from "@/components/plan-status-card";
+import { XpChip } from "@/components/xp-chip";
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) =>
@@ -130,6 +131,7 @@ function Index() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
+          <XpChip />
           <ThemeToggle />
           <Link
             to="/profile"
