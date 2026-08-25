@@ -9,6 +9,8 @@ import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { awardXp } from "@/lib/xp.functions";
 
 export const Route = createFileRoute("/list")({
   component: ListPage,
@@ -48,8 +50,20 @@ function ListPage() {
   }
 
   async function clearChecked() {
+    const finished = checkedCount;
     await supabase.from("grocery_items").delete().eq("checked", true);
     refresh();
+    if (finished > 0 && user) {
+      try {
+        const res = await awardXp({ data: { action: "grocery_list_completed" } });
+        if (res.awarded) {
+          toast.success(`+${res.points} XP — grocery list done!`);
+          queryClient.invalidateQueries({ queryKey: ["gamification"] });
+        }
+      } catch {
+        /* XP is best-effort */
+      }
+    }
   }
 
   const checkedCount = items?.filter((i) => i.checked).length ?? 0;
