@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { GamificationCard } from "@/components/gamification-card";
 import {
   Select,
   SelectContent,
@@ -300,6 +301,9 @@ function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* XP, levels, streaks & challenges */}
+      <GamificationCard />
 
       <Section title="Profile" items={profileItems} />
       <Section title="Account" items={accountItems} />
