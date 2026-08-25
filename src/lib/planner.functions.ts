@@ -311,6 +311,14 @@ Days: 1..${data.days}. One entry per meal per day.`;
       metadata: { meals: planRows.length, groceries: inserted, days: data.days },
     });
 
+    // Gamification: building a weekly plan awards XP (once per plan range).
+    try {
+      const { awardXpFor } = await import("@/lib/xp.server");
+      await awardXpFor(userId, "weekly_plan_completed", `${fromISO}:${toISO}`);
+    } catch {
+      /* XP is best-effort */
+    }
+
     return {
       meals: planRows.length,
       groceries: inserted,
