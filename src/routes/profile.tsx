@@ -487,7 +487,9 @@ function Row({ item }: { item: Item }) {
       </Link>
     );
   }
-  if (item.onClick) {
+  // A trailing control (e.g. a Switch) is itself a button, so the row must not
+  // also be a <button> — nested buttons are invalid HTML and break hydration.
+  if (item.onClick && !item.trailing) {
     return (
       <button type="button" onClick={item.onClick} className="block w-full text-left">
         {body}
