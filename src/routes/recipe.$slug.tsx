@@ -22,6 +22,7 @@ import { regenerateRecipeImage } from "@/lib/ai.functions";
 import { trackRecipeView } from "@/lib/engagement.functions";
 import { setContinueCooking } from "@/lib/continue-cooking";
 import { CookingMode } from "@/components/cooking-mode";
+import { recipeImageUrl, imageFallback, IMAGE_DIMENSIONS } from "@/lib/recipe-image";
 import { awardXp } from "@/lib/xp.functions";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 import { Button } from "@/components/ui/button";
@@ -179,25 +180,16 @@ function RecipePage() {
 
         <div className="mt-4 grid gap-8 md:grid-cols-2">
           <div className="overflow-hidden rounded-3xl bg-muted">
-            {r.image_url ? (
-              <img
-                src={r.image_url}
-                alt={r.name}
-                onError={(e) => {
-                  const img = e.currentTarget;
-                  if (img.dataset.fallback === "1") return;
-                  img.dataset.fallback = "1";
-                  img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-                    `${r.name}, real food photograph, hyperrealistic, natural light, plated`,
-                  )}?width=1200&height=1200&nologo=true&model=flux`;
-                }}
-                className="aspect-square w-full object-cover"
-              />
-            ) : (
-              <div className="flex aspect-square items-center justify-center">
-                <ChefHat className="h-12 w-12 text-muted-foreground" />
-              </div>
-            )}
+            <img
+              src={recipeImageUrl(r, "hero")}
+              alt={r.name}
+              width={IMAGE_DIMENSIONS.hero.width}
+              height={IMAGE_DIMENSIONS.hero.height}
+              decoding="async"
+              fetchPriority="high"
+              onError={imageFallback(r, "hero")}
+              className="aspect-square w-full object-cover"
+            />
           </div>
 
           <div className="flex flex-col">
