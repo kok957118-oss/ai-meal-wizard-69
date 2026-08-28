@@ -1,3 +1,4 @@
+import { recipeImageUrl, imageFallback, IMAGE_DIMENSIONS } from "@/lib/recipe-image";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
