@@ -315,18 +315,16 @@ function CookbookPage() {
                   params={{ slug: item.slug }}
                   className="block h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-muted"
                 >
-                  {item.image_url ? (
-                    <img
-                      src={item.image_url}
-                      alt={item.name}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <ChefHat className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                  )}
+                  <img
+                    src={recipeImageUrl(item, "thumb")}
+                    alt={item.name}
+                    width={IMAGE_DIMENSIONS.thumb.width}
+                    height={IMAGE_DIMENSIONS.thumb.height}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                    onError={imageFallback(item, "thumb")}
+                  />
                 </Link>
                 <div className="min-w-0 flex-1">
                   <Link

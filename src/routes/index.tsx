@@ -333,9 +333,16 @@ function Index() {
                 className="w-24 flex-shrink-0 text-center"
               >
                 <div className="aspect-square w-24 overflow-hidden rounded-2xl bg-muted">
-                  {r.image_url && (
-                    <img src={r.image_url} alt={r.name} className="h-full w-full object-cover" />
-                  )}
+                  <img
+                    src={recipeImageUrl(r, "thumb")}
+                    alt={r.name}
+                    width={IMAGE_DIMENSIONS.thumb.width}
+                    height={IMAGE_DIMENSIONS.thumb.height}
+                    loading="lazy"
+                    decoding="async"
+                    onError={imageFallback(r, "thumb")}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <p className="mt-1.5 line-clamp-2 text-xs font-medium leading-tight">{r.name}</p>
               </Link>
