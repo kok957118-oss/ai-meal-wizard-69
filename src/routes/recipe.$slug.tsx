@@ -349,6 +349,7 @@ function RecipePage() {
             }
           }}
         />
+        </Suspense>
       )}
     </main>
   );
