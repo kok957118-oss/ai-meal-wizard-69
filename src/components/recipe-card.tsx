@@ -1,15 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Clock, Flame, Heart, Utensils } from "lucide-react";
-
-function handleImgError(e: React.SyntheticEvent<HTMLImageElement>) {
-  const img = e.currentTarget;
-  if (img.dataset.fallback === "1") return;
-  img.dataset.fallback = "1";
-  const alt = img.alt || "dish";
-  img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-    `${alt}, real food photograph, hyperrealistic, natural light, plated`,
-  )}?width=800&height=800&nologo=true&model=flux`;
-}
+import { Clock, Flame, Heart } from "lucide-react";
+import { recipeImageUrl, imageFallback, IMAGE_DIMENSIONS } from "@/lib/recipe-image";
 
 export interface RecipeCardData {
   slug: string;
