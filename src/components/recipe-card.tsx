@@ -20,6 +20,8 @@ export interface TrendingCardData {
   cooking_time_minutes: number | null;
   calories: number | null;
   difficulty: string | null;
+  cuisine?: string | null;
+  category?: string | null;
 }
 
 const DIFFICULTY_DOTS: Record<string, number> = { Easy: 1, Medium: 2, Hard: 3 };
@@ -30,10 +32,13 @@ export function TrendingCard({
   recipe,
   isFavorite,
   onToggleFavorite,
+  priority = false,
 }: {
   recipe: TrendingCardData;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
+  /** Above-the-fold cards load eagerly; everything else lazily. */
+  priority?: boolean;
 }) {
   const dots = recipe.difficulty ? DIFFICULTY_DOTS[recipe.difficulty] ?? 1 : 1;
   return (
