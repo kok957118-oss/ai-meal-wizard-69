@@ -287,12 +287,13 @@ function Index() {
 
         {trending && trending.length > 0 ? (
           <div className="flex gap-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {trending.map((r) => (
+            {trending.map((r, i) => (
               <TrendingCard
                 key={r.id}
                 recipe={r}
                 isFavorite={favoriteIds.has(r.id)}
                 onToggleFavorite={toggleFavorite}
+                priority={i < 2}
               />
             ))}
           </div>
