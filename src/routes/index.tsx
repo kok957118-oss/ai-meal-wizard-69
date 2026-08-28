@@ -1,3 +1,4 @@
+import { recipeImageUrl, imageFallback, IMAGE_DIMENSIONS } from "@/lib/recipe-image";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
@@ -286,12 +287,13 @@ function Index() {
 
         {trending && trending.length > 0 ? (
           <div className="flex gap-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {trending.map((r) => (
+            {trending.map((r, i) => (
               <TrendingCard
                 key={r.id}
                 recipe={r}
                 isFavorite={favoriteIds.has(r.id)}
                 onToggleFavorite={toggleFavorite}
+                priority={i < 2}
               />
             ))}
           </div>
@@ -333,9 +335,16 @@ function Index() {
                 className="w-24 flex-shrink-0 text-center"
               >
                 <div className="aspect-square w-24 overflow-hidden rounded-2xl bg-muted">
-                  {r.image_url && (
-                    <img src={r.image_url} alt={r.name} className="h-full w-full object-cover" />
-                  )}
+                  <img
+                    src={recipeImageUrl(r, "thumb")}
+                    alt={r.name}
+                    width={IMAGE_DIMENSIONS.thumb.width}
+                    height={IMAGE_DIMENSIONS.thumb.height}
+                    loading="lazy"
+                    decoding="async"
+                    onError={imageFallback(r, "thumb")}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <p className="mt-1.5 line-clamp-2 text-xs font-medium leading-tight">{r.name}</p>
               </Link>

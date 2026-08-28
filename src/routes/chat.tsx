@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { toast } from "sonner";
 import { Crown, Loader2, MessageCircleQuestion, Send, Sparkles, Wand2 } from "lucide-react";
 import { askFoodQuestion } from "@/lib/ai.functions";
 import { generateVisualExplanation, type VisualExplanation } from "@/lib/visual.functions";
-import { VisualExplainer } from "@/components/visual-explainer";
+// Heavy media player (images + audio narration) — only loaded when a visual answer exists.
+const VisualExplainer = lazy(() =>
+  import("@/components/visual-explainer").then((m) => ({ default: m.VisualExplainer })),
+);
 import { usePremium } from "@/hooks/use-premium";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -180,7 +183,11 @@ function ChatPage() {
                 Visual explanation unavailable: {t.visualError}
               </p>
             )}
-            {t.visual && <VisualExplainer data={t.visual} />}
+            {t.visual && (
+              <Suspense fallback={<div className="h-40 animate-pulse rounded-2xl bg-muted" />}>
+                <VisualExplainer data={t.visual} />
+              </Suspense>
+            )}
           </div>
         ))}
 

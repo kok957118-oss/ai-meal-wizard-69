@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   Clock,
   Users,
@@ -21,7 +21,10 @@ import { usePremium } from "@/hooks/use-premium";
 import { regenerateRecipeImage } from "@/lib/ai.functions";
 import { trackRecipeView } from "@/lib/engagement.functions";
 import { setContinueCooking } from "@/lib/continue-cooking";
-import { CookingMode } from "@/components/cooking-mode";
+// Full-screen step-by-step mode — split out of the initial recipe page bundle.
+const CookingMode = lazy(() =>
+  import("@/components/cooking-mode").then((m) => ({ default: m.CookingMode })),
+);
 import { recipeImageUrl, imageFallback, IMAGE_DIMENSIONS } from "@/lib/recipe-image";
 import { awardXp } from "@/lib/xp.functions";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
@@ -326,6 +329,7 @@ function RecipePage() {
         <RecipeRatings recipeId={r.id} />
       </div>
       {cookingOpen && (
+        <Suspense fallback={null}>
         <CookingMode
           name={r.name}
           steps={steps}
@@ -345,6 +349,7 @@ function RecipePage() {
             }
           }}
         />
+        </Suspense>
       )}
     </main>
   );
