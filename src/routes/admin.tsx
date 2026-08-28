@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
@@ -51,13 +51,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { TelemetryTab } from "@/components/admin/telemetry-tab";
 import { FlagsTab } from "@/components/admin/flags-tab";
 
-// Import chart pieces directly (they're small once bundled)
-import {
-  AreaTrend,
-  BarBreakdown,
-  DonutBreakdown,
-  LineTrend,
-} from "@/components/admin/charts";
+// Charts pull in the charting library — load them only when a chart renders.
+const AreaTrend = lazy(() =>
+  import("@/components/admin/charts").then((m) => ({ default: m.AreaTrend })),
+);
+const BarBreakdown = lazy(() =>
+  import("@/components/admin/charts").then((m) => ({ default: m.BarBreakdown })),
+);
+const DonutBreakdown = lazy(() =>
+  import("@/components/admin/charts").then((m) => ({ default: m.DonutBreakdown })),
+);
+const LineTrend = lazy(() =>
+  import("@/components/admin/charts").then((m) => ({ default: m.LineTrend })),
+);
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
