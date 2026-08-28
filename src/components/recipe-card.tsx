@@ -43,19 +43,17 @@ export function TrendingCard({
         params={{ slug: recipe.slug }}
         className="group relative block aspect-square w-40 overflow-hidden rounded-2xl bg-muted"
       >
-        {recipe.image_url ? (
-          <img
-            src={recipe.image_url}
-            alt={recipe.name}
-            loading="lazy"
-            onError={handleImgError}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            <Utensils className="h-8 w-8" />
-          </div>
-        )}
+        <img
+          src={recipeImageUrl(recipe, "card")}
+          alt={recipe.name}
+          width={IMAGE_DIMENSIONS.card.width}
+          height={IMAGE_DIMENSIONS.card.height}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
+          decoding="async"
+          onError={imageFallback(recipe, "card")}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
         <button
           type="button"
           onClick={(e) => {
@@ -111,19 +109,16 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-1 hover:shadow-lg"
     >
       <div className="aspect-[4/3] w-full overflow-hidden bg-muted">
-        {recipe.image_url ? (
-          <img
-            src={recipe.image_url}
-            alt={recipe.name}
-            loading="lazy"
-            onError={handleImgError}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            <Utensils className="h-8 w-8" />
-          </div>
-        )}
+        <img
+          src={recipeImageUrl(recipe, "card")}
+          alt={recipe.name}
+          width={IMAGE_DIMENSIONS.card.width}
+          height={IMAGE_DIMENSIONS.card.height}
+          loading="lazy"
+          decoding="async"
+          onError={imageFallback(recipe, "card")}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
