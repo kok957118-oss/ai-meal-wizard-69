@@ -101,6 +101,18 @@ export function VisualExplainer({ data }: { data: VisualExplanation }) {
         ctx.globalAlpha = fade;
         ctx.drawImage(img, dx, dy, dw, dh);
         ctx.globalAlpha = 1;
+      } else {
+        // Ambient animated backdrop so the visual is never static,
+        // even while the scene image is still loading.
+        const t = progress * Math.PI * 2;
+        const cx = w * (0.5 + 0.18 * Math.cos(t));
+        const cy = h * (0.42 + 0.14 * Math.sin(t));
+        const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.7);
+        glow.addColorStop(0, "rgba(74,155,47,0.35)");
+        glow.addColorStop(0.6, "rgba(240,180,0,0.10)");
+        glow.addColorStop(1, "rgba(13,11,9,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, w, h);
       }
 
       // Bottom scrim
@@ -166,10 +178,11 @@ export function VisualExplainer({ data }: { data: VisualExplanation }) {
       if (playing && local >= scene.end - scene.start) {
         if (index < scenes.length - 1) {
           setIndex(index + 1);
-          startRef.current = performance.now();
         } else {
-          setPlaying(false);
+          // Loop automatically — the visual keeps moving on its own.
+          setIndex(0);
         }
+        startRef.current = performance.now();
       }
       raf = requestAnimationFrame(loop);
     };
