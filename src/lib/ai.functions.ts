@@ -258,6 +258,70 @@ export const scanKitchen = createServerFn({ method: "POST" })
     }
   });
 
+const DishSchema = z.object({
+  is_food: z.boolean().default(true),
+  name: z.string().min(1),
+  description: z.string().nullable().optional(),
+  cuisine: z.string().nullable().optional(),
+  meal_type: z.string().nullable().optional(),
+  confidence: z.number().min(0).max(1).default(0.7),
+  portion: z.string().nullable().optional(),
+  calories: z.number().nullable().optional(),
+  protein_g: z.number().nullable().optional(),
+  carbs_g: z.number().nullable().optional(),
+  fat_g: z.number().nullable().optional(),
+  fiber_g: z.number().nullable().optional(),
+  ingredients: z.array(z.string()).default([]),
+  health_note: z.string().nullable().optional(),
+});
+export type ScannedDish = z.infer<typeof DishSchema>;
+
+// Dish Scan — identify a plated meal and estimate its nutrition
+export const scanDish = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({ imageDataUrl: z.string().startsWith("data:image/") }).parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    await enforceRateLimit("ai_vision", context.userId, 10);
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("Missing LOVABLE_API_KEY");
+    const t0 = Date.now();
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: "google/gemini-3.8-flash",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: `You are a nutritionist who knows South African and global dishes. Look at the photo and identify the dish shown. Estimate nutrition for the visible portion.
+Reply with JSON only (no code fences):
+{"is_food": boolean, "name": string (dish name, e.g. "Bunny Chow", "Chicken Biryani"), "description": string (one sentence), "cuisine": string, "meal_type": "Breakfast"|"Lunch"|"Dinner"|"Snack", "confidence": number 0-1, "portion": string (e.g. "1 plate, ~350 g"), "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number, "fiber_g": number, "ingredients": string[] (main visible components), "health_note": string (one short tip)}
+If the photo does not show food, set is_food to false and name to "Not food".`,
+                },
+                { type: "image_url", image_url: { url: data.imageDataUrl } },
+              ],
+            },
+          ],
+        }),
+      });
+      if (!res.ok) throw new Error(`Vision API ${res.status}: ${await res.text()}`);
+      const j = (await res.json()) as { choices: { message: { content: string } }[] };
+      const dish = DishSchema.parse(extractJson(j.choices?.[0]?.message?.content ?? "{}"));
+      void trackEvent({ user_id: context.userId, kind: "scan", name: "scan.dish", latency_ms: Date.now() - t0, success: true, metadata: { name: dish.name, confidence: dish.confidence, is_food: dish.is_food } });
+      return dish;
+    } catch (e) {
+      void trackEvent({ user_id: context.userId, kind: "scan", name: "scan.dish", latency_ms: Date.now() - t0, success: false, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
+      throw e;
+    }
+  });
+
+
 // Ask anything about food — a single-turn Q&A used by the AI Chat quick action
 export const askFoodQuestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
