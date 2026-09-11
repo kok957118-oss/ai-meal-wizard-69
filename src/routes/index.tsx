@@ -382,13 +382,16 @@ function Index() {
             className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
           >
             <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-muted">
-              {continueCooking.image_url && (
-                <img
-                  src={continueCooking.image_url}
-                  alt={continueCooking.name}
-                  className="h-full w-full object-cover"
-                />
-              )}
+              <img
+                src={recipeImageUrl(continueCooking, "thumb")}
+                alt={continueCooking.name}
+                width={IMAGE_DIMENSIONS.thumb.width}
+                height={IMAGE_DIMENSIONS.thumb.height}
+                loading="lazy"
+                decoding="async"
+                onError={imageFallback(continueCooking, "thumb")}
+                className="h-full w-full object-cover"
+              />
             </div>
             <div className="flex-1">
               <p className="font-display text-lg leading-tight">{continueCooking.name}</p>
