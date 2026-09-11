@@ -1,3 +1,5 @@
+import { RECIPE_PHOTOS } from "@/assets/recipes/manifest";
+
 /**
  * Recipe image matching + delivery.
  *
@@ -70,6 +72,16 @@ export const IMAGE_DIMENSIONS: Record<ImageSize, { width: number; height: number
   hero: { width: 1024, height: 1024 },
 };
 
+/** Returns an audited, CDN-hosted photo for the recipes bundled with MealMate. */
+export function curatedRecipeImageUrl(
+  r: Pick<ImageRecipeLike, "slug">,
+  size: ImageSize = "card",
+): string | null {
+  const slug = r.slug?.trim();
+  if (!slug) return null;
+  return RECIPE_PHOTOS[slug]?.[size] ?? null;
+}
+
 /** Deterministic generated photo for a recipe with no stored image. */
 export function generatedImageUrl(r: ImageRecipeLike, size: ImageSize = "card"): string {
   const { width, height } = IMAGE_DIMENSIONS[size];
@@ -85,6 +97,8 @@ export function generatedImageUrl(r: ImageRecipeLike, size: ImageSize = "card"):
  * needed — a 160px card never downloads a 1200px file.
  */
 export function recipeImageUrl(r: ImageRecipeLike, size: ImageSize = "card"): string {
+  const curated = curatedRecipeImageUrl(r, size);
+  if (curated) return curated;
   const stored = r.image_url?.trim();
   if (!stored) return generatedImageUrl(r, size);
   if (!stored.includes("image.pollinations.ai")) return stored;
@@ -109,6 +123,6 @@ export function imageFallback(r: ImageRecipeLike, size: ImageSize = "card") {
     const img = e.currentTarget;
     if (img.dataset["fallback"] === "1") return;
     img.dataset["fallback"] = "1";
-    img.src = generatedImageUrl(r, size);
+    img.src = curatedRecipeImageUrl(r, size) ?? generatedImageUrl(r, size);
   };
 }

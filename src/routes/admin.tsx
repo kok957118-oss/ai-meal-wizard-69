@@ -50,6 +50,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { TelemetryTab } from "@/components/admin/telemetry-tab";
 import { FlagsTab } from "@/components/admin/flags-tab";
+import { IMAGE_DIMENSIONS, imageFallback, recipeImageUrl } from "@/lib/recipe-image";
 
 // Charts pull in the charting library — load them only when a chart renders.
 const AreaTrend = lazy(() =>
@@ -521,11 +522,16 @@ function RecipesTab({ analytics, loading }: { analytics?: Analytics; loading: bo
             {analytics.recipes.topByFavorites.map((r, i) => (
               <li key={r.id} className="flex items-center gap-3 py-3">
                 <span className="w-6 text-sm font-medium text-muted-foreground">{i + 1}</span>
-                {r.image_url ? (
-                  <img src={r.image_url} alt="" className="h-10 w-10 rounded-xl object-cover" />
-                ) : (
-                  <div className="h-10 w-10 rounded-xl bg-muted" />
-                )}
+                <img
+                  src={recipeImageUrl(r, "thumb")}
+                  alt={`${r.name} recipe`}
+                  width={IMAGE_DIMENSIONS.thumb.width}
+                  height={IMAGE_DIMENSIONS.thumb.height}
+                  loading="lazy"
+                  decoding="async"
+                  onError={imageFallback(r, "thumb")}
+                  className="h-10 w-10 rounded-xl object-cover"
+                />
                 <span className="flex-1 truncate">{r.name}</span>
                 <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                   {r.saves} saves
