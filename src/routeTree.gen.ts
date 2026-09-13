@@ -32,6 +32,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RestaurantSlugRouteImport } from './routes/restaurant.$slug'
 import { Route as RecipeSlugRouteImport } from './routes/recipe.$slug'
+import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
 import { Route as OrderIdRouteImport } from './routes/order.$id'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
@@ -152,6 +153,11 @@ const RecipeSlugRoute = RecipeSlugRouteImport.update({
   path: '/recipe/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartnerDashboardRoute = PartnerDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => PartnerRoute,
+} as any)
 const OrderIdRoute = OrderIdRouteImport.update({
   id: '/order/$id',
   path: '/order/$id',
@@ -186,7 +192,7 @@ export interface FileRoutesByFullPath {
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
   '/orders': typeof OrdersRoute
-  '/partner': typeof PartnerRoute
+  '/partner': typeof PartnerRouteWithChildren
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$id': typeof OrderIdRoute
+  '/partner/dashboard': typeof PartnerDashboardRoute
   '/recipe/$slug': typeof RecipeSlugRoute
   '/restaurant/$slug': typeof RestaurantSlugRoute
   '/api/public/webhooks/revenuecat': typeof ApiPublicWebhooksRevenuecatRoute
@@ -215,7 +222,7 @@ export interface FileRoutesByTo {
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
   '/orders': typeof OrdersRoute
-  '/partner': typeof PartnerRoute
+  '/partner': typeof PartnerRouteWithChildren
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$id': typeof OrderIdRoute
+  '/partner/dashboard': typeof PartnerDashboardRoute
   '/recipe/$slug': typeof RecipeSlugRoute
   '/restaurant/$slug': typeof RestaurantSlugRoute
   '/api/public/webhooks/revenuecat': typeof ApiPublicWebhooksRevenuecatRoute
@@ -245,7 +253,7 @@ export interface FileRoutesById {
   '/grocery': typeof GroceryRoute
   '/list': typeof ListRoute
   '/orders': typeof OrdersRoute
-  '/partner': typeof PartnerRoute
+  '/partner': typeof PartnerRouteWithChildren
   '/planner': typeof PlannerRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$id': typeof OrderIdRoute
+  '/partner/dashboard': typeof PartnerDashboardRoute
   '/recipe/$slug': typeof RecipeSlugRoute
   '/restaurant/$slug': typeof RestaurantSlugRoute
   '/api/public/webhooks/revenuecat': typeof ApiPublicWebhooksRevenuecatRoute
@@ -289,6 +298,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/terms'
     | '/order/$id'
+    | '/partner/dashboard'
     | '/recipe/$slug'
     | '/restaurant/$slug'
     | '/api/public/webhooks/revenuecat'
@@ -318,6 +328,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/terms'
     | '/order/$id'
+    | '/partner/dashboard'
     | '/recipe/$slug'
     | '/restaurant/$slug'
     | '/api/public/webhooks/revenuecat'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/terms'
     | '/order/$id'
+    | '/partner/dashboard'
     | '/recipe/$slug'
     | '/restaurant/$slug'
     | '/api/public/webhooks/revenuecat'
@@ -364,7 +376,7 @@ export interface RootRouteChildren {
   GroceryRoute: typeof GroceryRoute
   ListRoute: typeof ListRoute
   OrdersRoute: typeof OrdersRoute
-  PartnerRoute: typeof PartnerRoute
+  PartnerRoute: typeof PartnerRouteWithChildren
   PlannerRoute: typeof PlannerRoute
   PremiumRoute: typeof PremiumRoute
   ProfileRoute: typeof ProfileRoute
@@ -545,6 +557,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipeSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partner/dashboard': {
+      id: '/partner/dashboard'
+      path: '/dashboard'
+      fullPath: '/partner/dashboard'
+      preLoaderRoute: typeof PartnerDashboardRouteImport
+      parentRoute: typeof PartnerRoute
+    }
     '/order/$id': {
       id: '/order/$id'
       path: '/order/$id'
@@ -576,6 +595,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PartnerRouteChildren {
+  PartnerDashboardRoute: typeof PartnerDashboardRoute
+}
+
+const PartnerRouteChildren: PartnerRouteChildren = {
+  PartnerDashboardRoute: PartnerDashboardRoute,
+}
+
+const PartnerRouteWithChildren =
+  PartnerRoute._addFileChildren(PartnerRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -588,7 +618,7 @@ const rootRouteChildren: RootRouteChildren = {
   GroceryRoute: GroceryRoute,
   ListRoute: ListRoute,
   OrdersRoute: OrdersRoute,
-  PartnerRoute: PartnerRoute,
+  PartnerRoute: PartnerRouteWithChildren,
   PlannerRoute: PlannerRoute,
   PremiumRoute: PremiumRoute,
   ProfileRoute: ProfileRoute,
