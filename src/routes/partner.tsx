@@ -102,6 +102,15 @@ function PartnerPage() {
         Tell us about your restaurant. Once approved you'll get a dashboard to manage your menu and orders.
       </p>
 
+      {user && (
+        <div className="md3-surface mt-4 flex items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4">
+          <p className="text-sm">Already a partner?</p>
+          <Button asChild size="sm" variant="outline" className="rounded-full">
+            <Link to="/partner/dashboard">Open dashboard</Link>
+          </Button>
+        </div>
+      )}
+
       {!user ? (
         <div className="md3-surface mt-6 rounded-3xl border border-dashed border-border p-8 text-center">
           <p className="text-sm">Sign in to apply as a restaurant partner.</p>
